@@ -118,15 +118,15 @@ export function MemoryMatchGame({ inModal }: { inModal?: boolean } = {}) {
           >
             Shuffle
           </Button>
-          <p className="text-sm text-slate-500">{displayStatus}</p>
+          <p className="text-sm text-slate-400">{displayStatus}</p>
         </>
       }
       aside={
-        <Card className="border-white/70 bg-white/95 shadow-[0_16px_40px_rgba(148,163,184,0.12)]">
+        <Card className="fun-panel bg-[var(--arcade-card)]">
           <CardHeader>
-            <CardTitle className="text-lg">Hint</CardTitle>
+            <CardTitle className="text-lg text-[var(--neon-cyan)]">Hint</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm leading-7 text-slate-600">
+          <CardContent className="space-y-3 text-sm leading-7 text-slate-400">
             <p>카드에 살짝 떠오르는 호버 효과를 넣어 더 즐겁게 보이도록 했습니다.</p>
             <p>매치된 카드는 더 밝고 반짝이는 컬러로 유지됩니다.</p>
           </CardContent>

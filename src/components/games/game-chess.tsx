@@ -686,10 +686,10 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
             새 게임
           </Button>
           {kingInCheck && !gameOver && (
-            <span className="text-sm font-semibold text-red-600 animate-pulse">⚠️ 체크!</span>
+            <span className="text-sm font-semibold text-red-400 animate-pulse">⚠️ 체크!</span>
           )}
           {gameOver && (
-            <span className="text-sm font-semibold text-violet-700">{gameOver.msg}</span>
+            <span className="text-sm font-semibold text-[var(--neon-magenta)]">{gameOver.msg}</span>
           )}
         </div>
       }
@@ -697,9 +697,9 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
       aside={
         <div className="space-y-3">
           {/* Move history */}
-          <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
-            <h3 className="mb-2 text-sm font-semibold text-slate-700">이동 기록</h3>
-            <div className="max-h-48 overflow-y-auto font-mono text-xs text-slate-600 space-y-0.5">
+          <div className="rounded-2xl border border-[var(--neon-cyan)]/20 bg-[var(--arcade-card)] p-4">
+            <h3 className="mb-2 text-sm font-semibold text-[var(--neon-cyan)]">이동 기록</h3>
+            <div className="max-h-48 overflow-y-auto font-mono text-xs text-slate-400 space-y-0.5">
               {history.length === 0
                 ? <p className="text-slate-400 italic">게임을 시작하세요</p>
                 : history.reduce<React.ReactNode[]>((acc, mv, i) => {
@@ -716,10 +716,10 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
             </div>
           </div>
           {/* Captured pieces */}
-          <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 text-xs">
+          <div className="rounded-2xl border border-[var(--neon-cyan)]/20 bg-[var(--arcade-card)] p-4 text-xs">
             <div className="space-y-2">
               <div>
-                <span className="text-slate-500">당신이 잡음:</span>
+                <span className="text-slate-400">당신이 잡음:</span>
                 <div className="mt-1 flex flex-wrap gap-0.5">
                   {captured.byW.map((p, i) => (
                     <span key={i} className="inline-block w-5 h-5">
@@ -729,7 +729,7 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
                 </div>
               </div>
               <div>
-                <span className="text-slate-500">AI가 잡음:</span>
+                <span className="text-slate-400">AI가 잡음:</span>
                 <div className="mt-1 flex flex-wrap gap-0.5">
                   {captured.byB.map((p, i) => (
                     <span key={i} className="inline-block w-5 h-5">
@@ -782,7 +782,7 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
           {/* Column labels (a-h) top */}
           <div className="grid grid-cols-[20px_repeat(8,1fr)_20px] mb-0.5 pl-5">
             {files.map(f => (
-              <div key={f} className="text-center text-[10px] font-semibold text-slate-500">{f}</div>
+              <div key={f} className="text-center text-[10px] font-semibold text-slate-400">{f}</div>
             ))}
           </div>
 
@@ -790,7 +790,7 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
             {Array.from({ length: 8 }, (_, rowIndex) => (
               <>
                 {/* Row label left */}
-                <div key={`l${rowIndex}`} className="flex items-center justify-center text-[10px] font-semibold text-slate-500">
+                <div key={`l${rowIndex}`} className="flex items-center justify-center text-[10px] font-semibold text-slate-400">
                   {8 - rowIndex}
                 </div>
 
@@ -847,7 +847,7 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
                 })}
 
                 {/* Row label right */}
-                <div key={`r${rowIndex}`} className="flex items-center justify-center text-[10px] font-semibold text-slate-500">
+                <div key={`r${rowIndex}`} className="flex items-center justify-center text-[10px] font-semibold text-slate-400">
                   {8 - rowIndex}
                 </div>
               </>
@@ -857,14 +857,14 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
           {/* Column labels bottom */}
           <div className="grid grid-cols-[20px_repeat(8,1fr)_20px] mt-0.5 pl-5">
             {files.map(f => (
-              <div key={f} className="text-center text-[10px] font-semibold text-slate-500">{f}</div>
+              <div key={f} className="text-center text-[10px] font-semibold text-slate-400">{f}</div>
             ))}
           </div>
         </div>
 
         {/* AI thinking indicator */}
         {isThinking && (
-          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-slate-500">
+          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-slate-400">
             <div className="flex gap-1">
               {[0, 1, 2].map(i => (
                 <div key={i} className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />

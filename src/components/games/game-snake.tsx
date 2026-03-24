@@ -157,25 +157,31 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
         <>
           <Button
             onClick={() => setIsRunning(true)}
-            className="rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_12px_30px_rgba(16,185,129,0.2)]"
+            className="rounded-full bg-gradient-to-r from-[var(--neon-green)] to-[#00e5ff] text-black font-bold shadow-[0_0_20px_rgba(57,255,20,0.3)]"
           >
             Start
           </Button>
-          <Button onClick={() => setIsRunning(false)} variant="secondary" className="rounded-full">
+          <Button
+            onClick={() => setIsRunning(false)}
+            className="rounded-full border border-[var(--neon-cyan)]/30 bg-[var(--arcade-card)] text-slate-300 hover:border-[var(--neon-cyan)]/60 hover:text-[var(--neon-cyan)]"
+          >
             Pause
           </Button>
-          <Button onClick={resetGame} variant="outline" className="rounded-full">
+          <Button
+            onClick={resetGame}
+            className="rounded-full border border-slate-600 bg-transparent text-slate-400 hover:border-slate-400 hover:text-slate-200"
+          >
             Reset
           </Button>
-          <p className="text-sm text-slate-500">{status}</p>
+          <p className="text-sm text-slate-400">{status}</p>
         </>
       }
       aside={
-        <Card className="border-white/70 bg-white/95 shadow-[0_16px_40px_rgba(148,163,184,0.12)]">
+        <Card className="fun-panel bg-[var(--arcade-card)]">
           <CardHeader>
-            <CardTitle className="text-lg">Controls</CardTitle>
+            <CardTitle className="text-lg text-[var(--neon-green)]">Controls</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm leading-7 text-slate-600">
+          <CardContent className="space-y-3 text-sm leading-7 text-slate-400">
             <p>Arrow keys: move</p>
             <p>머리는 더 밝게, 과일은 더 반짝이게 보여서 가독성을 높였습니다.</p>
           </CardContent>

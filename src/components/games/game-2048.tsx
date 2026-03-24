@@ -194,19 +194,19 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
         <>
           <Button
             onClick={resetGame}
-            className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-[0_12px_30px_rgba(168,85,247,0.2)]"
+            className="rounded-full bg-gradient-to-r from-[#00e5ff] to-[#ff00aa] text-black font-bold shadow-[0_0_20px_rgba(0,229,255,0.3)]"
           >
             Restart
           </Button>
-          <p className="text-sm text-slate-500">{displayStatus}</p>
+          <p className="text-sm text-slate-400">{displayStatus}</p>
         </>
       }
       aside={
-        <Card className="border-white/70 bg-white/95 shadow-[0_16px_40px_rgba(148,163,184,0.12)]">
+        <Card className="fun-panel bg-[var(--arcade-card)]">
           <CardHeader>
-            <CardTitle className="text-lg">Tips</CardTitle>
+            <CardTitle className="text-lg text-[var(--neon-cyan)]">Tips</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-3 text-sm leading-7 text-slate-600">
+          <CardContent className="space-y-3 text-sm leading-7 text-slate-400">
             <p>큰 숫자는 한쪽 구석으로 몰아두면 안정적으로 성장합니다.</p>
             <p>빈 칸을 유지하면서 타일 흐름을 한 방향으로 정리해보세요.</p>
           </CardContent>
