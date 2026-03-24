@@ -12,14 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { gameCatalog } from "@/lib/game-data";
-
-function openGame(slug: string) {
-  window.open(
-    `/games/${slug}/play`,
-    `game-${slug}`,
-    "width=1200,height=800,menubar=no,toolbar=no,location=no,status=no"
-  );
-}
+import { openGame } from "@/lib/open-game";
 
 export function HomeGamesSection() {
   const featuredGames = gameCatalog.slice(0, 2);
@@ -31,23 +24,26 @@ export function HomeGamesSection() {
         {featuredGames.map((game) => (
           <Card
             key={game.slug}
-            className="fun-panel border-white/70 bg-gradient-to-br from-purple-50 via-pink-50 to-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(168,85,247,0.18)] cursor-pointer"
+            className="fun-panel cursor-pointer bg-[var(--arcade-card)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_40px_rgba(0,229,255,0.15)]"
             onClick={() => openGame(game.slug)}
           >
             <CardContent className="p-8">
               <div className="space-y-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="text-5xl">{game.emoji}</div>
-                  <Badge variant="secondary" className="rounded-full bg-white">
+                  <Badge
+                    variant="secondary"
+                    className="rounded-full border border-[var(--neon-cyan)]/30 bg-[var(--neon-cyan)]/10 text-[var(--neon-cyan)]"
+                  >
                     {game.difficulty}
                   </Badge>
                 </div>
                 <div className="space-y-3">
-                  <h3 className="text-2xl font-bold text-slate-900">{game.title}</h3>
-                  <p className="text-sm leading-7 text-slate-700">{game.description}</p>
+                  <h3 className="text-2xl font-bold text-slate-100">{game.title}</h3>
+                  <p className="text-sm leading-7 text-slate-400">{game.description}</p>
                 </div>
                 <Button
-                  className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-[0_12px_30px_rgba(168,85,247,0.2)] hover:scale-[1.02]"
+                  className="rounded-full bg-gradient-to-r from-[#00e5ff] to-[#ff00aa] text-black font-bold shadow-[0_0_20px_rgba(0,229,255,0.3)] hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(0,229,255,0.5)]"
                   onClick={(e) => {
                     e.stopPropagation();
                     openGame(game.slug);
@@ -67,25 +63,28 @@ export function HomeGamesSection() {
         {gameCatalog.map((game) => (
           <Card
             key={game.slug}
-            className="border-white/70 bg-white/85 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(59,130,246,0.14)] cursor-pointer"
+            className="fun-panel cursor-pointer bg-[var(--arcade-card)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(255,0,170,0.12)]"
             onClick={() => openGame(game.slug)}
           >
             <CardHeader>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between">
                   <span className="text-3xl">{game.emoji}</span>
-                  <Badge variant="secondary" className="rounded-full text-xs">
+                  <Badge
+                    variant="secondary"
+                    className="rounded-full border border-[var(--neon-magenta)]/30 bg-[var(--neon-magenta)]/10 text-[var(--neon-magenta)] text-xs"
+                  >
                     {game.difficulty}
                   </Badge>
                 </div>
-                <CardTitle className="text-base">{game.title}</CardTitle>
-                <CardDescription className="text-xs">{game.category}</CardDescription>
+                <CardTitle className="text-base text-slate-100">{game.title}</CardTitle>
+                <CardDescription className="text-xs text-slate-500">{game.category}</CardDescription>
               </div>
             </CardHeader>
             <CardContent>
               <Button
                 size="sm"
-                className="w-full rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-xs hover:scale-[1.02]"
+                className="w-full rounded-full bg-gradient-to-r from-[#00e5ff] to-[#ff00aa] text-black font-bold text-xs hover:scale-[1.02]"
                 onClick={(e) => {
                   e.stopPropagation();
                   openGame(game.slug);

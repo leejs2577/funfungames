@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { GameFrame } from "@/components/games/game-frame";
+import { MobileControls } from "@/components/games/mobile-controls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -53,6 +54,19 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
     return () => window.clearTimeout(id);
   }, []);
 
+  const handleDirection = useCallback((nextDirection: Direction) => {
+    const opposite =
+      (directionRef.current === "UP" && nextDirection === "DOWN") ||
+      (directionRef.current === "DOWN" && nextDirection === "UP") ||
+      (directionRef.current === "LEFT" && nextDirection === "RIGHT") ||
+      (directionRef.current === "RIGHT" && nextDirection === "LEFT");
+
+    if (!opposite) {
+      directionRef.current = nextDirection;
+      setDirection(nextDirection);
+    }
+  }, []);
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const directionMap: Record<string, Direction> = {
@@ -64,22 +78,12 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
       const nextDirection = directionMap[event.key];
       if (!nextDirection) return;
       event.preventDefault();
-
-      const opposite =
-        (directionRef.current === "UP" && nextDirection === "DOWN") ||
-        (directionRef.current === "DOWN" && nextDirection === "UP") ||
-        (directionRef.current === "LEFT" && nextDirection === "RIGHT") ||
-        (directionRef.current === "RIGHT" && nextDirection === "LEFT");
-
-      if (!opposite) {
-        directionRef.current = nextDirection;
-        setDirection(nextDirection);
-      }
+      handleDirection(nextDirection);
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [handleDirection]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -198,6 +202,13 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
           />
         ))}
       </div>
+      <MobileControls
+        onDirection={(dir) => {
+          const dirMap = { up: "UP", down: "DOWN", left: "LEFT", right: "RIGHT" } as const;
+          handleDirection(dirMap[dir]);
+        }}
+        disabled={!isRunning}
+      />
     </GameFrame>
   );
 }

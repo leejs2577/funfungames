@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { GameFrame } from "@/components/games/game-frame";
+import { MobileControls } from "@/components/games/mobile-controls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -129,6 +130,25 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
     setStatus("Fresh sparkling board ready.");
   };
 
+  const handleDirection = useCallback(
+    (direction: "left" | "right" | "up" | "down") => {
+      if (won || gameOver) return;
+      setBoard((current) => {
+        const next = moveBoard(current, direction);
+        if (next.changed) {
+          setScore((previous) => {
+            const updated = previous + next.gained;
+            setBest((currentBest) => Math.max(currentBest, updated));
+            return updated;
+          });
+          setStatus(`Moved ${direction}.`);
+        }
+        return next.board;
+      });
+    },
+    [won, gameOver],
+  );
+
   useEffect(() => {
     const id = window.setTimeout(() => setBoard(createStartBoard()), 0);
     return () => window.clearTimeout(id);
@@ -144,26 +164,14 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
       };
 
       const direction = directionMap[event.key];
-      if (!direction || won || gameOver) return;
+      if (!direction) return;
       event.preventDefault();
-
-      setBoard((current) => {
-        const next = moveBoard(current, direction);
-        if (next.changed) {
-          setScore((previous) => {
-            const updated = previous + next.gained;
-            setBest((currentBest) => Math.max(currentBest, updated));
-            return updated;
-          });
-          setStatus(`Moved ${direction}.`);
-        }
-        return next.board;
-      });
+      handleDirection(direction);
     };
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [gameOver, won]);
+  }, [handleDirection]);
 
   const displayStatus = won
     ? "2048 achieved! Glitter victory!"
@@ -219,6 +227,10 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
           )),
         )}
       </div>
+      <MobileControls
+        onDirection={handleDirection}
+        disabled={won || gameOver}
+      />
     </GameFrame>
   );
 }

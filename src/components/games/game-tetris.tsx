@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { GameFrame } from "@/components/games/game-frame";
+import { MobileControls } from "@/components/games/mobile-controls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -278,6 +279,18 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
           )),
         )}
       </div>
+      <MobileControls
+        onDirection={(dir) => {
+          if (!running) return;
+          if (dir === "left") movePiece(-1, 0);
+          if (dir === "right") movePiece(1, 0);
+          if (dir === "down") movePiece(0, 1);
+          if (dir === "up") movePiece(0, 0, true);
+        }}
+        onAction={hardDrop}
+        actionLabel="DROP"
+        disabled={!running}
+      />
     </GameFrame>
   );
 }

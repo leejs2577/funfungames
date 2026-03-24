@@ -5,26 +5,42 @@ import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/40 bg-white/65 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-[var(--neon-cyan)]/20 bg-[#0a0a1a]/90 backdrop-blur-xl">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Link href="/" className="group flex items-center gap-3">
-          <div className="flex size-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-600 via-fuchsia-500 to-rose-400 text-white shadow-[0_12px_30px_rgba(217,70,239,0.25)] transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105">
+          <div className="flex size-11 items-center justify-center rounded-xl bg-gradient-to-br from-[#00e5ff] to-[#ff00aa] text-black shadow-[0_0_20px_rgba(0,229,255,0.4)] transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_0_30px_rgba(0,229,255,0.6)]">
             <Gamepad2 className="size-5" />
           </div>
           <div>
-            <p className="text-lg font-black tracking-tight text-slate-900">FunFUnGames</p>
-            <p className="text-xs text-slate-500">Bright casual mini arcade</p>
+            <p
+              className="text-sm font-bold tracking-tight text-[var(--neon-cyan)]"
+              style={{
+                fontFamily: "var(--font-arcade)",
+                textShadow: "0 0 10px rgba(0,229,255,0.5), 0 0 20px rgba(0,229,255,0.2)",
+              }}
+            >
+              FunFUnGames
+            </p>
+            <p className="text-xs text-slate-500">Retro Arcade Portal</p>
           </div>
         </Link>
 
         <nav className="flex items-center gap-2">
-          <Button asChild variant="ghost" className="rounded-full text-slate-700 hover:bg-rose-50">
+          <Button
+            asChild
+            variant="ghost"
+            className="rounded-lg text-slate-300 hover:bg-[var(--neon-cyan)]/10 hover:text-[var(--neon-cyan)]"
+          >
             <Link href="/">
               <Home className="mr-2 size-4" />
               Home
             </Link>
           </Button>
-          <Button asChild variant="ghost" className="rounded-full text-slate-700 hover:bg-sky-50">
+          <Button
+            asChild
+            variant="ghost"
+            className="rounded-lg text-slate-300 hover:bg-[var(--neon-magenta)]/10 hover:text-[var(--neon-magenta)]"
+          >
             <Link href="/games">
               <Sparkles className="mr-2 size-4" />
               Games
