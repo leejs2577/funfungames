@@ -49,38 +49,38 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.99 0.01 87);
+  --foreground: oklch(0.22 0.03 258);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.22 0.03 258);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.22 0.03 258);
+  --primary: oklch(0.55 0.15 265);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.97 0.02 230);
+  --secondary-foreground: oklch(0.28 0.02 258);
+  --muted: oklch(0.97 0.01 230);
+  --muted-foreground: oklch(0.52 0.03 258);
+  --accent: oklch(0.95 0.04 25);
+  --accent-foreground: oklch(0.3 0.03 258);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: oklch(0.92 0.01 260);
+  --input: oklch(0.92 0.01 260);
+  --ring: oklch(0.72 0.08 275);
+  --chart-1: oklch(0.8 0.11 20);
+  --chart-2: oklch(0.82 0.1 225);
+  --chart-3: oklch(0.75 0.13 145);
+  --chart-4: oklch(0.86 0.12 85);
+  --chart-5: oklch(0.71 0.1 300);
+  --radius: 1.1rem;
+  --sidebar: oklch(0.985 0.01 87);
+  --sidebar-foreground: oklch(0.22 0.03 258);
+  --sidebar-primary: oklch(0.55 0.15 265);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.96 0.02 230);
+  --sidebar-accent-foreground: oklch(0.22 0.03 258);
+  --sidebar-border: oklch(0.92 0.01 260);
+  --sidebar-ring: oklch(0.72 0.08 275);
 }
 
 .dark {
@@ -123,8 +123,103 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image:
+      radial-gradient(circle at top, rgba(255, 214, 224, 0.45), transparent 28%),
+      radial-gradient(circle at right top, rgba(191, 219, 254, 0.3), transparent 24%),
+      linear-gradient(135deg, rgba(255,255,255,0.9), rgba(248,250,255,0.95));
   }
   html {
     @apply font-sans;
   }
+  a,
+  button {
+    @apply transition-all duration-200;
+  }
+}
+
+@theme inline {
+  --animate-float: float 5s ease-in-out infinite;
+  --animate-float-slow: float 8s ease-in-out infinite;
+  --animate-pulse-glow: pulse-glow 2.6s ease-in-out infinite;
+  --animate-shimmer: shimmer 2.2s linear infinite;
+  --animate-wiggle-soft: wiggle-soft 1.8s ease-in-out infinite;
+  --animate-pop-in: pop-in 0.35s ease-out;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 rgba(255, 255, 255, 0.35), 0 0 0 rgba(168, 85, 247, 0.12);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(255, 255, 255, 0.65), 0 0 30px rgba(168, 85, 247, 0.2);
+  }
+}
+
+@keyframes shimmer {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(220%);
+  }
+}
+
+@keyframes wiggle-soft {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-2deg) scale(1.02);
+  }
+  75% {
+    transform: rotate(2deg) scale(1.02);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.fun-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.fun-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.18) 35%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 65%
+  );
+  transform: translateX(-140%);
+  animation: shimmer 2.8s linear infinite;
+  pointer-events: none;
+}
+
+.sparkle-dot {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(0.5px);
+  opacity: 0.9;
 }
