@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Play } from "lucide-react";
 
-import { Game2048 } from "@/components/games/game-2048";
-import { MemoryMatchGame } from "@/components/games/game-memory-match";
-import { SnakeGame } from "@/components/games/game-snake";
-import { TetrisGame } from "@/components/games/game-tetris";
-import { ChessGame } from "@/components/games/game-chess";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,6 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { gameCatalog, getGameBySlug } from "@/lib/game-data";
+import { PlayButton } from "@/components/play-button";
 
 export function generateStaticParams() {
   return gameCatalog.map((game) => ({ slug: game.slug }));
@@ -69,7 +66,8 @@ export default async function GameDetailPage({
                 ))}
               </div>
               <div className="flex flex-wrap gap-3">
-                <Button asChild className="rounded-full bg-slate-900">
+                <PlayButton slug={slug} label={`${game.title} 플레이`} />
+                <Button asChild variant="outline" className="rounded-full bg-white/70">
                   <Link href="/games">다른 게임 보기</Link>
                 </Button>
                 <Button asChild variant="outline" className="rounded-full bg-white/70">
@@ -84,22 +82,30 @@ export default async function GameDetailPage({
               <CardTitle>How to play</CardTitle>
               <CardDescription className="leading-7">{game.instructions}</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3 sm:grid-cols-2">
-              {game.hints.map((hint) => (
-                <div key={hint} className="rounded-3xl bg-slate-50 p-4 text-sm leading-7 text-slate-600">
-                  {hint}
+            <CardContent className="space-y-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                {game.hints.map((hint) => (
+                  <div key={hint} className="rounded-3xl bg-slate-50 p-4 text-sm leading-7 text-slate-600">
+                    {hint}
+                  </div>
+                ))}
+              </div>
+
+              {/* Large play CTA */}
+              <div className="mt-6 flex items-center justify-center rounded-3xl bg-gradient-to-br from-violet-50 to-fuchsia-50 p-8">
+                <div className="text-center space-y-4">
+                  <div className="text-5xl">{game.emoji}</div>
+                  <p className="text-sm text-slate-500">새 창에서 최적화된 화면으로 플레이하세요</p>
+                  <PlayButton
+                    slug={slug}
+                    label="새 창으로 플레이"
+                    icon
+                    className="bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-[0_12px_30px_rgba(168,85,247,0.25)] hover:scale-105"
+                  />
                 </div>
-              ))}
+              </div>
             </CardContent>
           </Card>
-        </section>
-
-        <section>
-          {slug === "tetris" ? <TetrisGame /> : null}
-          {slug === "2048" ? <Game2048 /> : null}
-          {slug === "snake" ? <SnakeGame /> : null}
-          {slug === "memory-match" ? <MemoryMatchGame /> : null}
-          {slug === "chess" ? <ChessGame /> : null}
         </section>
       </main>
     </div>

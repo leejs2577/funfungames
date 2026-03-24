@@ -3,689 +3,877 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GameFrame } from "@/components/games/game-frame";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-// Types
+// ─── Types ───────────────────────────────────────────────────────────────────
 type PieceType = "K" | "Q" | "R" | "B" | "N" | "P";
-type PieceColor = "w" | "b";
-type Piece = { type: PieceType; color: PieceColor };
+type Color = "w" | "b";
+type Piece = { type: PieceType; color: Color };
 type Square = Piece | null;
 type Board = Square[][];
 type Move = {
-  fromRow: number;
-  fromCol: number;
-  toRow: number;
-  toCol: number;
+  from: [number, number];
+  to: [number, number];
   promotion?: PieceType;
-  isCastle?: "K" | "Q";
-  isEnPassant?: boolean;
+  castle?: "K" | "Q";
+  enPassant?: boolean;
+  captured?: Piece;
 };
+type CastlingRights = { wK: boolean; wQ: boolean; bK: boolean; bQ: boolean };
 
-type CastlingRights = {
-  wK: boolean;
-  wQ: boolean;
-  bK: boolean;
-  bQ: boolean;
-};
+// ─── Piece SVG Components ─────────────────────────────────────────────────────
+function PieceSVG({ type, color }: { type: PieceType; color: Color }) {
+  const isWhite = color === "w";
 
-// Constants
-const PIECE_SYMBOLS: Record<PieceColor, Record<PieceType, string>> = {
-  w: { K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙" },
-  b: { K: "♚", Q: "♛", R: "♜", B: "♝", N: "♞", P: "♟" },
-};
+  const defs = (
+    <defs>
+      <radialGradient id={`g-${color}-body`} cx="50%" cy="35%" r="60%">
+        <stop offset="0%" stopColor={isWhite ? "#fffdf0" : "#4a4a5a"} />
+        <stop offset="100%" stopColor={isWhite ? "#d4b483" : "#1a1a2e"} />
+      </radialGradient>
+      <radialGradient id={`g-${color}-hi`} cx="40%" cy="30%" r="40%">
+        <stop offset="0%" stopColor={isWhite ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.25)"} />
+        <stop offset="100%" stopColor="rgba(255,255,255,0)" />
+      </radialGradient>
+      <filter id={`sh-${color}`} x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="2" stdDeviation="2" floodColor={isWhite ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.6)"} />
+      </filter>
+    </defs>
+  );
 
-const PIECE_VALUE: Record<PieceType, number> = {
-  P: 100,
-  N: 320,
-  B: 330,
-  R: 500,
-  Q: 900,
-  K: 20000,
-};
+  const stroke = isWhite ? "#a08040" : "#888899";
+  const fill = `url(#g-${color}-body)`;
+  const hi = `url(#g-${color}-hi)`;
+  const f = `filter:url(#sh-${color})`;
 
-const DIFFICULTY_LEVELS = [
-  { key: 1 as const, label: "초보" },
-  { key: 2 as const, label: "입문" },
-  { key: 3 as const, label: "중급" },
-  { key: 4 as const, label: "고급" },
-  { key: 5 as const, label: "고수" },
-];
+  if (type === "K") return (
+    <svg viewBox="0 0 45 45" className="w-full h-full">
+      {defs}
+      <g style={{ filter: `url(#sh-${color})` }}>
+        <rect x="15" y="1" width="15" height="4" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <rect x="20" y="2" width="5" height="10" rx="1" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <rect x="13" y="5" width="19" height="3" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <polygon points="11,14 34,14 31,11 14,11" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="8" y="14" width="29" height="3" rx="1" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <polygon points="8,17 37,17 35,40 10,40" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="6" y="40" width="33" height="3" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <ellipse cx="22.5" cy="17" rx="14" ry="2" fill={hi} opacity="0.6"/>
+      </g>
+    </svg>
+  );
 
-const DIFFICULTY_DEPTH: Record<1 | 2 | 3 | 4 | 5, number> = {
-  1: 1,
-  2: 2,
-  3: 3,
-  4: 4,
-  5: 5,
-};
+  if (type === "Q") return (
+    <svg viewBox="0 0 45 45" className="w-full h-full">
+      {defs}
+      <g style={{ filter: `url(#sh-${color})` }}>
+        <circle cx="9" cy="6" r="4" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <circle cx="22.5" cy="4" r="4.5" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <circle cx="36" cy="6" r="4" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <circle cx="14" cy="12" r="3.5" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <circle cx="31" cy="12" r="3.5" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <polygon points="9,10 36,10 35,22 10,22" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="8" y="22" width="29" height="3" rx="1" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <polygon points="8,25 37,25 35,40 10,40" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="6" y="40" width="33" height="3" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <ellipse cx="22.5" cy="22" rx="13" ry="2" fill={hi} opacity="0.6"/>
+      </g>
+    </svg>
+  );
 
-// Piece-square tables (simplified, scaled down)
-const PST_PAWN = [
-  0, 0, 0, 0, 0, 0, 0, 0, 50, 50, 50, 50, 50, 50, 50, 50, 10, 10, 20, 30,
-  30, 20, 10, 10, 5, 5, 10, 25, 25, 10, 5, 5, 0, 0, 0, 20, 20, 0, 0, 0, 5,
-  -5, -10, 0, 0, -10, -5, 5, 5, 10, 10, -20, -20, 10, 10, 5, 0, 0, 0, 0, 0,
-  0, 0, 0,
-];
+  if (type === "R") return (
+    <svg viewBox="0 0 45 45" className="w-full h-full">
+      {defs}
+      <g style={{ filter: `url(#sh-${color})` }}>
+        <rect x="9" y="1" width="8" height="9" rx="1" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <rect x="19" y="1" width="7" height="9" rx="1" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <rect x="28" y="1" width="8" height="9" rx="1" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <rect x="9" y="10" width="27" height="3" rx="1" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="12" y="13" width="21" height="24" rx="1" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="8" y="37" width="29" height="4" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <ellipse cx="22.5" cy="37" rx="13" ry="1.5" fill={hi} opacity="0.6"/>
+      </g>
+    </svg>
+  );
 
-const PST_KNIGHT = [
-  -50, -40, -30, -30, -30, -30, -40, -50, -40, -20, 0, 0, 0, 0, -20, -40,
-  -30, 0, 10, 15, 15, 10, 0, -30, -30, 5, 15, 20, 20, 15, 5, -30, -30, 0,
-  15, 20, 20, 15, 0, -30, -30, 5, 10, 15, 15, 10, 5, -30, -40, -20, 0, 5, 5,
-  0, -20, -40, -50, -40, -30, -30, -30, -30, -40, -50,
-];
+  if (type === "B") return (
+    <svg viewBox="0 0 45 45" className="w-full h-full">
+      {defs}
+      <g style={{ filter: `url(#sh-${color})` }}>
+        <circle cx="22.5" cy="7" r="4" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <circle cx="22.5" cy="5" r="1.5" fill={isWhite ? "#c0a050" : "#888"} stroke={stroke} strokeWidth="0.5"/>
+        <ellipse cx="22.5" cy="16" rx="6" ry="8" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <polygon points="14,24 31,24 28,12 17,12" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <ellipse cx="22.5" cy="36" rx="10" ry="6" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="8" y="40" width="29" height="3" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <ellipse cx="22.5" cy="40" rx="13" ry="1.5" fill={hi} opacity="0.6"/>
+      </g>
+    </svg>
+  );
 
-const PST_BISHOP = [
-  -20, -10, -10, -10, -10, -10, -10, -20, -10, 0, 0, 0, 0, 0, 0, -10, -10, 0,
-  5, 10, 10, 5, 0, -10, -10, 5, 5, 10, 10, 5, 5, -10, -10, 0, 10, 10, 10, 10,
-  0, -10, -10, 10, 10, 10, 10, 10, 10, -10, -10, 5, 0, 0, 0, 0, 5, -10, -20,
-  -10, -10, -10, -10, -10, -10, -20,
-];
+  if (type === "N") return (
+    <svg viewBox="0 0 45 45" className="w-full h-full">
+      {defs}
+      <g style={{ filter: `url(#sh-${color})` }}>
+        <path d="M22,10 C17,5 10,8 9,14 C8,20 12,22 14,26 C15,28 14,30 14,32 L31,32 C31,28 29,24 27,20 C26,17 28,13 26,10 C24,8 22,8 22,10 Z"
+          fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <circle cx="16" cy="14" r="2" fill={isWhite ? "#ddd" : "#555"} stroke={stroke} strokeWidth="0.5"/>
+        <path d="M12,28 C13,25 15,24 17,25" fill="none" stroke={stroke} strokeWidth="0.8"/>
+        <rect x="8" y="32" width="29" height="4" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="6" y="36" width="33" height="3" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <ellipse cx="22.5" cy="36" rx="14" ry="1.5" fill={hi} opacity="0.5"/>
+      </g>
+    </svg>
+  );
 
-const PST_ROOK = [
-  0, 0, 0, 0, 0, 0, 0, 0, 5, 10, 10, 10, 10, 10, 10, 5, -5, 0, 0, 0, 0, 0,
-  0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, -5, 0, 0, 0, 0,
-  0, 0, -5, -5, 0, 0, 0, 0, 0, 0, -5, 0, 0, 0, 5, 5, 0, 0, 0,
-];
+  // Pawn
+  return (
+    <svg viewBox="0 0 45 45" className="w-full h-full">
+      {defs}
+      <g style={{ filter: `url(#sh-${color})` }}>
+        <circle cx="22.5" cy="10" r="7" fill={fill} stroke={stroke} strokeWidth="0.8"/>
+        <rect x="17" y="17" width="11" height="8" rx="2" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <polygon points="14,25 31,25 28,32 17,32" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <rect x="10" y="32" width="25" height="4" rx="1.5" fill={fill} stroke={stroke} strokeWidth="0.7"/>
+        <ellipse cx="22.5" cy="32" rx="11" ry="1.5" fill={hi} opacity="0.6"/>
+      </g>
+    </svg>
+  );
+}
 
-const PST_KING = [
-  -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40, -40,
-  -30, -30, -40, -40, -50, -50, -40, -40, -30, -30, -40, -40, -50, -50, -40,
-  -40, -30, -20, -30, -30, -40, -40, -30, -30, -20, -10, -20, -20, -20, -20,
-  -20, -20, -10, 20, 20, -5, -5, -5, -5, 20, 20, 20, 30, 10, 0, 0, 10, 30,
-  20,
-];
-
-const PST_MAP: Record<PieceType, number[]> = {
-  P: PST_PAWN,
-  N: PST_KNIGHT,
-  B: PST_BISHOP,
-  R: PST_ROOK,
-  K: PST_KING,
-  Q: [...Array(64)].map(() => 0),
-};
-
-// Pure helper functions
-function createInitialBoard(): Board {
+// ─── Chess Logic ──────────────────────────────────────────────────────────────
+function initBoard(): Board {
   const b: Board = Array.from({ length: 8 }, () => Array(8).fill(null));
-  const backRank: PieceType[] = ["R", "N", "B", "Q", "K", "B", "N", "R"];
-  backRank.forEach((type, col) => {
-    b[0][col] = { type, color: "b" };
-  });
-  for (let col = 0; col < 8; col++) b[1][col] = { type: "P", color: "b" };
-  for (let col = 0; col < 8; col++) b[6][col] = { type: "P", color: "w" };
-  backRank.forEach((type, col) => {
-    b[7][col] = { type, color: "w" };
-  });
+  const backRow: PieceType[] = ["R", "N", "B", "Q", "K", "B", "N", "R"];
+  backRow.forEach((t, c) => { b[0][c] = { type: t, color: "b" }; });
+  for (let c = 0; c < 8; c++) b[1][c] = { type: "P", color: "b" };
+  for (let c = 0; c < 8; c++) b[6][c] = { type: "P", color: "w" };
+  backRow.forEach((t, c) => { b[7][c] = { type: t, color: "w" }; });
   return b;
 }
 
-function deepCopyBoard(board: Board): Board {
-  return board.map((row) => [...row]);
+function cloneBoard(b: Board): Board {
+  return b.map(r => [...r]);
 }
 
-function isWhiteSquare(row: number, col: number): boolean {
-  return (row + col) % 2 === 0;
+function opp(c: Color): Color {
+  return c === "w" ? "b" : "w";
 }
 
-function getPieceAt(board: Board, row: number, col: number): Piece | null {
-  if (row < 0 || row > 7 || col < 0 || col > 7) return null;
-  return board[row][col];
-}
-
-function isInBounds(row: number, col: number): boolean {
-  return row >= 0 && row <= 7 && col >= 0 && col <= 7;
-}
-
-function isKingInCheck(board: Board, color: PieceColor): boolean {
-  const kingPos = findKing(board, color);
-  if (!kingPos) return false;
-  const [kr, kc] = kingPos;
-
-  // Check all opponent pieces
-  const oppColor = color === "w" ? "b" : "w";
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const piece = board[r][c];
-      if (piece && piece.color === oppColor) {
-        if (canPieceAttack(board, r, c, kr, kc)) {
-          return true;
-        }
-      }
-    }
-  }
-  return false;
-}
-
-function findKing(board: Board, color: PieceColor): [number, number] | null {
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const piece = board[r][c];
-      if (piece && piece.type === "K" && piece.color === color) {
-        return [r, c];
-      }
-    }
-  }
+function findKing(b: Board, c: Color): [number, number] | null {
+  for (let r = 0; r < 8; r++)
+    for (let col = 0; col < 8; col++)
+      if (b[r][col]?.type === "K" && b[r][col]?.color === c)
+        return [r, col];
   return null;
 }
 
-function canPieceAttack(
-  board: Board,
-  fromRow: number,
-  fromCol: number,
-  toRow: number,
-  toCol: number
-): boolean {
-  const piece = board[fromRow][fromCol];
-  if (!piece) return false;
-
-  const rowDiff = toRow - fromRow;
-  const colDiff = toCol - fromCol;
-  const absRowDiff = Math.abs(rowDiff);
-  const absColDiff = Math.abs(colDiff);
-
-  switch (piece.type) {
-    case "P":
-      const dir = piece.color === "w" ? -1 : 1;
-      return rowDiff === dir && absColDiff === 1;
-    case "N":
-      return (
-        (absRowDiff === 2 && absColDiff === 1) ||
-        (absRowDiff === 1 && absColDiff === 2)
-      );
-    case "B":
-      if (absRowDiff !== absColDiff || absRowDiff === 0) return false;
-      return isPathClear(board, fromRow, fromCol, toRow, toCol);
-    case "R":
-      if (rowDiff !== 0 && colDiff !== 0) return false;
-      return isPathClear(board, fromRow, fromCol, toRow, toCol);
-    case "Q":
-      if (
-        rowDiff !== 0 &&
-        colDiff !== 0 &&
-        absRowDiff !== absColDiff
-      )
-        return false;
-      return isPathClear(board, fromRow, fromCol, toRow, toCol);
-    case "K":
-      return absRowDiff <= 1 && absColDiff <= 1;
+// Is square [r,c] attacked by color `by`?
+function isAttacked(b: Board, r: number, c: number, by: Color): boolean {
+  for (let fr = 0; fr < 8; fr++) {
+    for (let fc = 0; fc < 8; fc++) {
+      const p = b[fr][fc];
+      if (!p || p.color !== by) continue;
+      if (canAttack(b, p, fr, fc, r, c)) return true;
+    }
   }
   return false;
 }
 
-function isPathClear(
-  board: Board,
-  fromRow: number,
-  fromCol: number,
-  toRow: number,
-  toCol: number
-): boolean {
-  const rowStep = toRow === fromRow ? 0 : toRow > fromRow ? 1 : -1;
-  const colStep = toCol === fromCol ? 0 : toCol > fromCol ? 1 : -1;
+function canAttack(b: Board, p: Piece, fr: number, fc: number, tr: number, tc: number): boolean {
+  const dr = tr - fr, dc = tc - fc;
+  const ar = Math.abs(dr), ac = Math.abs(dc);
+  switch (p.type) {
+    case "P": {
+      const dir = p.color === "w" ? -1 : 1;
+      return dr === dir && ac === 1;
+    }
+    case "N": return (ar === 2 && ac === 1) || (ar === 1 && ac === 2);
+    case "K": return ar <= 1 && ac <= 1 && (ar + ac > 0);
+    case "B": if (ar !== ac || ar === 0) return false; return isClear(b, fr, fc, tr, tc);
+    case "R": if (dr !== 0 && dc !== 0) return false; return isClear(b, fr, fc, tr, tc);
+    case "Q":
+      if (dr !== 0 && dc !== 0 && ar !== ac) return false;
+      return isClear(b, fr, fc, tr, tc);
+  }
+}
 
-  let r = fromRow + rowStep;
-  let c = fromCol + colStep;
-
-  while (r !== toRow || c !== toCol) {
-    if (board[r][c] !== null) return false;
-    r += rowStep;
-    c += colStep;
+function isClear(b: Board, fr: number, fc: number, tr: number, tc: number): boolean {
+  const rs = tr === fr ? 0 : tr > fr ? 1 : -1;
+  const cs = tc === fc ? 0 : tc > fc ? 1 : -1;
+  let r = fr + rs, c = fc + cs;
+  while (r !== tr || c !== tc) {
+    if (b[r][c]) return false;
+    r += rs; c += cs;
   }
   return true;
 }
 
-function isLegalMove(
-  board: Board,
-  move: Move,
-  enPassant: [number, number] | null,
-  castling: CastlingRights,
-  color: PieceColor
-): boolean {
-  const { fromRow, fromCol, toRow, toCol } = move;
-
-  const piece = getPieceAt(board, fromRow, fromCol);
-  if (!piece || piece.color !== color) return false;
-
-  const targetSquare = getPieceAt(board, toRow, toCol);
-  if (targetSquare && targetSquare.color === color) return false;
-
-  // Simulate move
-  const testBoard = deepCopyBoard(board);
-  testBoard[toRow][toCol] = testBoard[fromRow][fromCol];
-  testBoard[fromRow][fromCol] = null;
-
-  // Can't move into check
-  if (isKingInCheck(testBoard, color)) return false;
-
-  return true;
+function inCheck(b: Board, color: Color): boolean {
+  const kp = findKing(b, color);
+  return kp ? isAttacked(b, kp[0], kp[1], opp(color)) : false;
 }
 
-function getAllLegalMoves(
-  board: Board,
-  color: PieceColor,
-  enPassant: [number, number] | null,
-  castling: CastlingRights
+// Generate all pseudo-legal moves for a piece (correct movement patterns)
+function pieceMoves(
+  b: Board, r: number, c: number,
+  ep: [number, number] | null,
+  cr: CastlingRights
 ): Move[] {
+  const p = b[r][c];
+  if (!p) return [];
   const moves: Move[] = [];
+  const color = p.color;
 
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 8; c++) {
-      const piece = getPieceAt(board, r, c);
-      if (piece && piece.color === color) {
-        // Try all squares
-        for (let tr = 0; tr < 8; tr++) {
-          for (let tc = 0; tc < 8; tc++) {
-            const move: Move = {
-              fromRow: r,
-              fromCol: c,
-              toRow: tr,
-              toCol: tc,
-            };
+  const push = (tr: number, tc: number, extra?: Partial<Move>) => {
+    if (tr < 0 || tr > 7 || tc < 0 || tc > 7) return;
+    const target = b[tr][tc];
+    if (target?.color === color) return; // can't capture own piece
+    moves.push({ from: [r, c], to: [tr, tc], captured: target ?? undefined, ...extra });
+  };
 
-            if (isLegalMove(board, move, enPassant, castling, color)) {
-              moves.push(move);
-            }
-          }
-        }
+  const slide = (drs: number[], dcs: number[]) => {
+    for (let i = 0; i < drs.length; i++) {
+      let tr = r + drs[i], tc = c + dcs[i];
+      while (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) {
+        const t = b[tr][tc];
+        if (t?.color === color) break;
+        push(tr, tc);
+        if (t) break; // blocked after capture
+        tr += drs[i]; tc += dcs[i];
       }
     }
-  }
+  };
 
+  switch (p.type) {
+    case "P": {
+      const dir = color === "w" ? -1 : 1;
+      const startRow = color === "w" ? 6 : 1;
+      const promRow = color === "w" ? 0 : 7;
+      // forward
+      const tr1 = r + dir;
+      if (tr1 >= 0 && tr1 < 8 && !b[tr1][c]) {
+        if (tr1 === promRow) {
+          for (const pt of ["Q", "R", "B", "N"] as PieceType[])
+            moves.push({ from: [r, c], to: [tr1, c], promotion: pt });
+        } else {
+          moves.push({ from: [r, c], to: [tr1, c] });
+          // double push
+          const tr2 = r + dir * 2;
+          if (r === startRow && !b[tr2][c])
+            moves.push({ from: [r, c], to: [tr2, c] });
+        }
+      }
+      // diagonal captures
+      for (const dc of [-1, 1]) {
+        const tc = c + dc;
+        if (tc < 0 || tc > 7) continue;
+        const target = b[tr1][tc];
+        if (target && target.color !== color) {
+          if (tr1 === promRow) {
+            for (const pt of ["Q", "R", "B", "N"] as PieceType[])
+              moves.push({ from: [r, c], to: [tr1, tc], promotion: pt, captured: target });
+          } else {
+            moves.push({ from: [r, c], to: [tr1, tc], captured: target });
+          }
+        }
+        // en passant
+        if (ep && tr1 === ep[0] && tc === ep[1]) {
+          moves.push({ from: [r, c], to: [tr1, tc], enPassant: true });
+        }
+      }
+      break;
+    }
+    case "N": {
+      for (const [dr, dc] of [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]])
+        push(r + dr, c + dc);
+      break;
+    }
+    case "B": slide([-1, -1, 1, 1], [-1, 1, -1, 1]); break;
+    case "R": slide([-1, 1, 0, 0], [0, 0, -1, 1]); break;
+    case "Q": slide([-1, 1, 0, 0, -1, -1, 1, 1], [0, 0, -1, 1, -1, 1, -1, 1]); break;
+    case "K": {
+      for (const [dr, dc] of [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]])
+        push(r + dr, c + dc);
+      // Castling
+      if (color === "w" && r === 7 && c === 4) {
+        if (cr.wK && !b[7][5] && !b[7][6] && b[7][7]?.type === "R"
+          && !inCheck(b, "w") && !isAttacked(b, 7, 5, "b") && !isAttacked(b, 7, 6, "b"))
+          moves.push({ from: [r, c], to: [7, 6], castle: "K" });
+        if (cr.wQ && !b[7][3] && !b[7][2] && !b[7][1] && b[7][0]?.type === "R"
+          && !inCheck(b, "w") && !isAttacked(b, 7, 3, "b") && !isAttacked(b, 7, 2, "b"))
+          moves.push({ from: [r, c], to: [7, 2], castle: "Q" });
+      }
+      if (color === "b" && r === 0 && c === 4) {
+        if (cr.bK && !b[0][5] && !b[0][6] && b[0][7]?.type === "R"
+          && !inCheck(b, "b") && !isAttacked(b, 0, 5, "w") && !isAttacked(b, 0, 6, "w"))
+          moves.push({ from: [r, c], to: [0, 6], castle: "K" });
+        if (cr.bQ && !b[0][3] && !b[0][2] && !b[0][1] && b[0][0]?.type === "R"
+          && !inCheck(b, "b") && !isAttacked(b, 0, 3, "w") && !isAttacked(b, 0, 2, "w"))
+          moves.push({ from: [r, c], to: [0, 2], castle: "Q" });
+      }
+      break;
+    }
+  }
   return moves;
 }
 
-function evaluateBoard(board: Board): number {
-  let score = 0;
+// Filter moves that leave own king in check
+function legalMoves(b: Board, r: number, c: number, ep: [number, number] | null, cr: CastlingRights): Move[] {
+  const color = b[r][c]?.color;
+  if (!color) return [];
+  return pieceMoves(b, r, c, ep, cr).filter(m => {
+    const nb = applyMove(b, m);
+    return !inCheck(nb, color);
+  });
+}
 
+function allLegalMoves(b: Board, color: Color, ep: [number, number] | null, cr: CastlingRights): Move[] {
+  const moves: Move[] = [];
+  for (let r = 0; r < 8; r++)
+    for (let c = 0; c < 8; c++)
+      if (b[r][c]?.color === color)
+        moves.push(...legalMoves(b, r, c, ep, cr));
+  return moves;
+}
+
+function applyMove(b: Board, m: Move): Board {
+  const nb = cloneBoard(b);
+  const [fr, fc] = m.from;
+  const [tr, tc] = m.to;
+  const piece = nb[fr][fc]!;
+  nb[tr][tc] = m.promotion ? { type: m.promotion, color: piece.color } : piece;
+  nb[fr][fc] = null;
+  if (m.castle === "K") {
+    if (tr === 7) { nb[7][5] = nb[7][7]; nb[7][7] = null; }
+    else { nb[0][5] = nb[0][7]; nb[0][7] = null; }
+  }
+  if (m.castle === "Q") {
+    if (tr === 7) { nb[7][3] = nb[7][0]; nb[7][0] = null; }
+    else { nb[0][3] = nb[0][0]; nb[0][0] = null; }
+  }
+  if (m.enPassant) {
+    const captureRow = piece.color === "w" ? tr + 1 : tr - 1;
+    nb[captureRow][tc] = null;
+  }
+  return nb;
+}
+
+// ─── AI ───────────────────────────────────────────────────────────────────────
+const PIECE_VALUE: Record<PieceType, number> = { P: 100, N: 320, B: 330, R: 500, Q: 900, K: 20000 };
+
+// Piece-square tables (white's perspective, mirror for black)
+const PST: Record<PieceType, number[]> = {
+  P: [0,0,0,0,0,0,0,0,50,50,50,50,50,50,50,50,10,10,20,30,30,20,10,10,5,5,10,25,25,10,5,5,0,0,0,20,20,0,0,0,5,-5,-10,0,0,-10,-5,5,5,10,10,-20,-20,10,10,5,0,0,0,0,0,0,0,0],
+  N: [-50,-40,-30,-30,-30,-30,-40,-50,-40,-20,0,0,0,0,-20,-40,-30,0,10,15,15,10,0,-30,-30,5,15,20,20,15,5,-30,-30,0,15,20,20,15,0,-30,-30,5,10,15,15,10,5,-30,-40,-20,0,5,5,0,-20,-40,-50,-40,-30,-30,-30,-30,-40,-50],
+  B: [-20,-10,-10,-10,-10,-10,-10,-20,-10,0,0,0,0,0,0,-10,-10,0,5,10,10,5,0,-10,-10,5,5,10,10,5,5,-10,-10,0,10,10,10,10,0,-10,-10,10,10,10,10,10,10,-10,-10,5,0,0,0,0,5,-10,-20,-10,-10,-10,-10,-10,-10,-20],
+  R: [0,0,0,0,0,0,0,0,5,10,10,10,10,10,10,5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,-5,0,0,0,0,0,0,-5,0,0,0,5,5,0,0,0],
+  Q: Array(64).fill(0),
+  K: [-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-30,-40,-40,-50,-50,-40,-40,-30,-20,-30,-30,-40,-40,-30,-30,-20,-10,-20,-20,-20,-20,-20,-20,-10,20,20,-5,-5,-5,-5,20,20,20,30,10,0,0,10,30,20],
+};
+
+function evalBoard(b: Board): number {
+  let score = 0;
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
-      const piece = board[r][c];
-      if (piece) {
-        const value = PIECE_VALUE[piece.type];
-        const pstValue = PST_MAP[piece.type][r * 8 + c] || 0;
-        const total = value + pstValue * 0.5;
-        score += piece.color === "w" ? total : -total;
-      }
+      const p = b[r][c];
+      if (!p) continue;
+      const idx = p.color === "w" ? r * 8 + c : (7 - r) * 8 + c;
+      const val = PIECE_VALUE[p.type] + (PST[p.type][idx] || 0);
+      score += p.color === "w" ? val : -val;
     }
   }
-
   return score;
 }
 
 function minimax(
-  board: Board,
-  depth: number,
-  alpha: number,
-  beta: number,
-  isMaximizing: boolean
+  b: Board, depth: number, alpha: number, beta: number, maxing: boolean,
+  ep: [number, number] | null, cr: CastlingRights
 ): number {
-  if (depth === 0) return evaluateBoard(board);
-
-  const color: PieceColor = isMaximizing ? "b" : "w";
-  const moves = getAllLegalMoves(board, color, null, {
-    wK: false,
-    wQ: false,
-    bK: false,
-    bQ: false,
+  if (depth === 0) return evalBoard(b);
+  const color: Color = maxing ? "b" : "w";
+  const moves = allLegalMoves(b, color, ep, cr);
+  if (moves.length === 0) {
+    return inCheck(b, color) ? (maxing ? -99999 : 99999) : 0;
+  }
+  // MVV-LVA sort: captures first
+  moves.sort((a, b) => {
+    const av = a.captured ? PIECE_VALUE[a.captured.type] : 0;
+    const bv = b.captured ? PIECE_VALUE[b.captured.type] : 0;
+    return bv - av;
   });
 
-  if (moves.length === 0) {
-    if (isKingInCheck(board, color)) {
-      return isMaximizing ? -99999 : 99999;
-    }
-    return 0;
-  }
-
-  if (isMaximizing) {
-    let maxEval = -Infinity;
-    for (const move of moves) {
-      const next = deepCopyBoard(board);
-      next[move.toRow][move.toCol] = next[move.fromRow][move.fromCol];
-      next[move.fromRow][move.fromCol] = null;
-      const score = minimax(next, depth - 1, alpha, beta, false);
-      maxEval = Math.max(maxEval, score);
-      alpha = Math.max(alpha, score);
+  if (maxing) {
+    let best = -Infinity;
+    for (const m of moves) {
+      const nb = applyMove(b, m);
+      const s = minimax(nb, depth - 1, alpha, beta, false, null, cr);
+      best = Math.max(best, s);
+      alpha = Math.max(alpha, s);
       if (beta <= alpha) break;
     }
-    return maxEval;
+    return best;
   } else {
-    let minEval = Infinity;
-    for (const move of moves) {
-      const next = deepCopyBoard(board);
-      next[move.toRow][move.toCol] = next[move.fromRow][move.fromCol];
-      next[move.fromRow][move.fromCol] = null;
-      const score = minimax(next, depth - 1, alpha, beta, true);
-      minEval = Math.min(minEval, score);
-      beta = Math.min(beta, score);
+    let best = Infinity;
+    for (const m of moves) {
+      const nb = applyMove(b, m);
+      const s = minimax(nb, depth - 1, alpha, beta, true, null, cr);
+      best = Math.min(best, s);
+      beta = Math.min(beta, s);
       if (beta <= alpha) break;
     }
-    return minEval;
+    return best;
   }
 }
 
-function getBestMove(board: Board, depth: number): Move | null {
-  const moves = getAllLegalMoves(board, "b", null, {
-    wK: false,
-    wQ: false,
-    bK: false,
-    bQ: false,
-  });
+function getBestMove(b: Board, depth: number, ep: [number, number] | null, cr: CastlingRights, randomChance = 0): Move | null {
+  const moves = allLegalMoves(b, "b", ep, cr);
   if (!moves.length) return null;
-
+  if (randomChance > 0 && Math.random() < randomChance) {
+    return moves[Math.floor(Math.random() * moves.length)];
+  }
+  moves.sort((a, bm) => {
+    const av = a.captured ? PIECE_VALUE[a.captured.type] : 0;
+    const bv = bm.captured ? PIECE_VALUE[bm.captured.type] : 0;
+    return bv - av;
+  });
   let bestScore = -Infinity;
   let bestMove = moves[0];
-
-  for (const move of moves) {
-    const next = deepCopyBoard(board);
-    next[move.toRow][move.toCol] = next[move.fromRow][move.fromCol];
-    next[move.fromRow][move.fromCol] = null;
-    const score = minimax(next, depth - 1, -Infinity, Infinity, false);
-    if (score > bestScore) {
-      bestScore = score;
-      bestMove = move;
-    }
+  for (const m of moves) {
+    const nb = applyMove(b, m);
+    const s = minimax(nb, depth - 1, -Infinity, Infinity, false, null, cr);
+    if (s > bestScore) { bestScore = s; bestMove = m; }
   }
-
   return bestMove;
 }
 
-function formatMove(move: Move): string {
-  const colFrom = String.fromCharCode(97 + move.fromCol);
-  const rowFrom = 8 - move.fromRow;
-  const colTo = String.fromCharCode(97 + move.toCol);
-  const rowTo = 8 - move.toRow;
-  return `${colFrom}${rowFrom}-${colTo}${rowTo}`;
+const DIFFICULTY = [
+  { key: 1 as const, label: "입문", depth: 1, random: 0.4 },
+  { key: 2 as const, label: "초급", depth: 2, random: 0.15 },
+  { key: 3 as const, label: "중급", depth: 3, random: 0 },
+  { key: 4 as const, label: "고급", depth: 3, random: 0 },
+  { key: 5 as const, label: "고수", depth: 4, random: 0 },
+];
+
+// Algebraic notation helper
+function toAlgNotation(b: Board, m: Move): string {
+  const p = b[m.from[0]][m.from[1]];
+  if (!p) return "";
+  if (m.castle) return m.castle === "K" ? "O-O" : "O-O-O";
+  const files = "abcdefgh";
+  const toFile = files[m.to[1]];
+  const toRank = 8 - m.to[0];
+  const fromFile = files[m.from[1]];
+  let notation = "";
+  if (p.type === "P") {
+    notation = m.captured || m.enPassant ? `${fromFile}x${toFile}${toRank}` : `${toFile}${toRank}`;
+  } else {
+    const pfx = p.type;
+    notation = m.captured ? `${pfx}x${toFile}${toRank}` : `${pfx}${toFile}${toRank}`;
+  }
+  if (m.promotion) notation += "=" + m.promotion;
+  return notation;
 }
 
-// Component
+// ─── Component ────────────────────────────────────────────────────────────────
 export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
-  const [board, setBoard] = useState<Board>(createInitialBoard);
+  const [board, setBoard] = useState<Board>(initBoard);
+  const [turn, setTurn] = useState<Color>("w");
   const [selected, setSelected] = useState<[number, number] | null>(null);
-  const [turn, setTurn] = useState<PieceColor>("w");
-  const [status, setStatus] = useState("당신의 차례입니다 (흰색)");
-  const [difficulty, setDifficulty] = useState<1 | 2 | 3 | 4 | 5>(2);
-  const [capturedByWhite, setCapturedByWhite] = useState<Piece[]>([]);
-  const [capturedByBlack, setCapturedByBlack] = useState<Piece[]>([]);
-  const [moveHistory, setMoveHistory] = useState<string[]>([]);
+  const [ep, setEp] = useState<[number, number] | null>(null); // en passant target
+  const [castling, setCastling] = useState<CastlingRights>({ wK: true, wQ: true, bK: true, bQ: true });
+  const [captured, setCaptured] = useState<{ byW: Piece[]; byB: Piece[] }>({ byW: [], byB: [] });
+  const [history, setHistory] = useState<string[]>([]);
   const [flashCell, setFlashCell] = useState<string | null>(null);
+  const [lastMove, setLastMove] = useState<[[number, number], [number, number]] | null>(null);
   const [isThinking, setIsThinking] = useState(false);
-  const [castlingRights, setCastlingRights] = useState<CastlingRights>({
-    wK: true,
-    wQ: true,
-    bK: true,
-    bQ: true,
-  });
+  const [difficulty, setDifficulty] = useState<1|2|3|4|5>(2);
+  const [promotionPending, setPromotionPending] = useState<{ move: Move } | null>(null);
+  const [gameOver, setGameOver] = useState<{ result: "win" | "loss" | "draw"; msg: string } | null>(null);
 
   const boardRef = useRef(board);
-  const turnRef = useRef(turn);
-  const castlingRef = useRef(castlingRights);
+  const epRef = useRef(ep);
+  const castlingRef = useRef(castling);
+  useEffect(() => { boardRef.current = board; }, [board]);
+  useEffect(() => { epRef.current = ep; }, [ep]);
+  useEffect(() => { castlingRef.current = castling; }, [castling]);
 
-  useEffect(() => {
-    boardRef.current = board;
-  }, [board]);
-  useEffect(() => {
-    turnRef.current = turn;
-  }, [turn]);
-  useEffect(() => {
-    castlingRef.current = castlingRights;
-  }, [castlingRights]);
-
-  const isInCheck = useMemo(() => isKingInCheck(board, turn), [board, turn]);
-
-  const legalMoves = useMemo(
-    () =>
-      selected
-        ? getAllLegalMoves(board, "w", null, castlingRights).filter(
-            (m) => m.fromRow === selected[0] && m.fromCol === selected[1]
-          )
-        : [],
-    [board, selected, castlingRights]
+  const legalMovesForSelected = useMemo(
+    () => selected ? legalMoves(board, selected[0], selected[1], ep, castling) : [],
+    [board, selected, ep, castling]
   );
 
-  const isCheckmate = useMemo(() => {
-    if (!isInCheck) return false;
-    const allMoves = getAllLegalMoves(board, turn, null, castlingRights);
-    return allMoves.length === 0;
-  }, [board, turn, isInCheck, castlingRights]);
+  const kingInCheck = useMemo(() => inCheck(board, turn), [board, turn]);
+  const kingPos = useMemo(() => findKing(board, turn), [board, turn]);
 
-  const isStalemate = useMemo(() => {
-    if (isInCheck) return false;
-    const allMoves = getAllLegalMoves(board, turn, null, castlingRights);
-    return allMoves.length === 0;
-  }, [board, turn, isInCheck, castlingRights]);
+  function executeMove(b: Board, m: Move) {
+    const newBoard = applyMove(b, m);
+    const piece = b[m.from[0]][m.from[1]]!;
 
-  const resetGame = useCallback(() => {
-    setBoard(createInitialBoard());
+    // Update castling rights
+    const newCr = { ...castlingRef.current };
+    if (piece.type === "K") {
+      if (piece.color === "w") { newCr.wK = false; newCr.wQ = false; }
+      else { newCr.bK = false; newCr.bQ = false; }
+    }
+    if (piece.type === "R") {
+      if (m.from[0] === 7 && m.from[1] === 7) newCr.wK = false;
+      if (m.from[0] === 7 && m.from[1] === 0) newCr.wQ = false;
+      if (m.from[0] === 0 && m.from[1] === 7) newCr.bK = false;
+      if (m.from[0] === 0 && m.from[1] === 0) newCr.bQ = false;
+    }
+
+    // En passant target
+    let newEp: [number, number] | null = null;
+    if (piece.type === "P" && Math.abs(m.to[0] - m.from[0]) === 2) {
+      newEp = [(m.from[0] + m.to[0]) / 2, m.to[1]];
+    }
+
+    // Flash captured
+    if (m.captured || m.enPassant) {
+      const fKey = m.enPassant
+        ? `${piece.color === "w" ? m.to[0] + 1 : m.to[0] - 1},${m.to[1]}`
+        : `${m.to[0]},${m.to[1]}`;
+      setFlashCell(fKey);
+      setTimeout(() => setFlashCell(null), 600);
+    }
+
+    // Captured pieces
+    if (m.captured) {
+      setCaptured(prev =>
+        piece.color === "w"
+          ? { ...prev, byW: [...prev.byW, m.captured!] }
+          : { ...prev, byB: [...prev.byB, m.captured!] }
+      );
+    }
+    if (m.enPassant) {
+      const epPiece: Piece = { type: "P", color: opp(piece.color) };
+      setCaptured(prev =>
+        piece.color === "w"
+          ? { ...prev, byW: [...prev.byW, epPiece] }
+          : { ...prev, byB: [...prev.byB, epPiece] }
+      );
+    }
+
+    const notation = toAlgNotation(b, m);
+    const nextTurn = opp(piece.color);
+    const nextMoves = allLegalMoves(newBoard, nextTurn, newEp, newCr);
+
+    // Check for check/mate/stalemate notation suffix
+    let suffix = "";
+    if (inCheck(newBoard, nextTurn)) {
+      suffix = nextMoves.length === 0 ? "#" : "+";
+    }
+
+    setBoard(newBoard);
+    setCastling(newCr);
+    setEp(newEp);
+    setLastMove([m.from, m.to]);
+    setHistory(prev => [...prev, notation + suffix]);
     setSelected(null);
-    setTurn("w");
-    setStatus("당신의 차례입니다 (흰색)");
-    setCapturedByWhite([]);
-    setCapturedByBlack([]);
-    setMoveHistory([]);
-    setFlashCell(null);
-    setCastlingRights({ wK: true, wQ: true, bK: true, bQ: true });
-  }, []);
 
-  const handleSquareClick = useCallback(
-    (row: number, col: number) => {
-      if (turn !== "w" || isThinking || isCheckmate || isStalemate)
-        return;
-
-      if (selected === null) {
-        const piece = getPieceAt(board, row, col);
-        if (piece && piece.color === "w") {
-          setSelected([row, col]);
-        }
+    if (nextMoves.length === 0) {
+      if (inCheck(newBoard, nextTurn)) {
+        setGameOver({
+          result: piece.color === "w" ? "win" : "loss",
+          msg: piece.color === "w" ? "체크메이트! 당신이 이겼습니다! 🎉" : "체크메이트! AI가 이겼습니다."
+        });
       } else {
-        const move: Move = {
-          fromRow: selected[0],
-          fromCol: selected[1],
-          toRow: row,
-          toCol: col,
-        };
-
-        if (isLegalMove(board, move, null, castlingRights, "w")) {
-          const nextBoard = deepCopyBoard(board);
-          const capturedPiece = nextBoard[row][col];
-          nextBoard[row][col] = nextBoard[selected[0]][selected[1]];
-          nextBoard[selected[0]][selected[1]] = null;
-
-          if (capturedPiece) {
-            setCapturedByWhite((prev) => [...prev, capturedPiece]);
-            setFlashCell(`${row},${col}`);
-            window.setTimeout(() => setFlashCell(null), 600);
-          }
-
-          setBoard(nextBoard);
-          setMoveHistory((prev) => [...prev, formatMove(move)]);
-          setTurn("b");
-          setStatus("AI가 생각 중입니다...");
-          setSelected(null);
-        } else {
-          setSelected(null);
-        }
+        setGameOver({ result: "draw", msg: "스테일메이트! 무승부입니다." });
       }
-    },
-    [selected, board, turn, isThinking, isCheckmate, isStalemate, castlingRights]
-  );
+    } else {
+      setTurn(nextTurn);
+    }
+  }
+
+  const handleSquareClick = useCallback((r: number, c: number) => {
+    if (turn !== "w" || isThinking || gameOver || promotionPending) return;
+
+    if (selected === null) {
+      if (board[r][c]?.color === "w") setSelected([r, c]);
+    } else {
+      const move = legalMovesForSelected.find(m => m.to[0] === r && m.to[1] === c);
+      if (move) {
+        if (move.promotion) {
+          // Show promotion picker
+          setPromotionPending({ move });
+          return;
+        }
+        executeMove(board, move);
+      } else if (board[r][c]?.color === "w") {
+        setSelected([r, c]);
+      } else {
+        setSelected(null);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [turn, isThinking, gameOver, promotionPending, selected, board, legalMovesForSelected]);
+
+  function handlePromotion(pt: PieceType) {
+    if (!promotionPending) return;
+    const m = { ...promotionPending.move, promotion: pt };
+    setPromotionPending(null);
+    executeMove(board, m);
+  }
 
   // AI turn
   useEffect(() => {
-    if (turn !== "b" || isCheckmate || isStalemate) return;
-
+    if (turn !== "b" || isThinking || gameOver) return;
     setIsThinking(true);
-    const id = window.setTimeout(() => {
-      const depth = DIFFICULTY_DEPTH[difficulty];
-      const move = getBestMove(boardRef.current, depth);
-
+    const diff = DIFFICULTY.find(d => d.key === difficulty)!;
+    const id = setTimeout(() => {
+      const move = getBestMove(boardRef.current, diff.depth, epRef.current, castlingRef.current, diff.random);
       if (move) {
-        const nextBoard = deepCopyBoard(boardRef.current);
-        const capturedPiece = nextBoard[move.toRow][move.toCol];
-        nextBoard[move.toRow][move.toCol] =
-          nextBoard[move.fromRow][move.fromCol];
-        nextBoard[move.fromRow][move.fromCol] = null;
-
-        if (capturedPiece) {
-          setCapturedByBlack((prev) => [...prev, capturedPiece]);
-          setFlashCell(`${move.toRow},${move.toCol}`);
-          window.setTimeout(() => setFlashCell(null), 600);
-        }
-
-        setBoard(nextBoard);
-        setMoveHistory((prev) => [...prev, formatMove(move)]);
+        executeMove(boardRef.current, move);
+      } else {
+        // No moves — game over handled inside executeMove if applicable; fallback
         setTurn("w");
-        setStatus("당신의 차례입니다 (흰색)");
       }
       setIsThinking(false);
-    }, 500);
+    }, 300);
+    return () => clearTimeout(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [turn, difficulty, gameOver]);
 
-    return () => window.clearTimeout(id);
-  }, [turn, difficulty, isCheckmate, isStalemate]);
+  function resetGame() {
+    setBoard(initBoard());
+    setTurn("w");
+    setSelected(null);
+    setEp(null);
+    setCastling({ wK: true, wQ: true, bK: true, bQ: true });
+    setCaptured({ byW: [], byB: [] });
+    setHistory([]);
+    setFlashCell(null);
+    setLastMove(null);
+    setIsThinking(false);
+    setPromotionPending(null);
+    setGameOver(null);
+  }
+
+  const diff = DIFFICULTY.find(d => d.key === difficulty)!;
+  const files = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
+  // Material advantage
+  const wMat = captured.byW.reduce((s, p) => s + PIECE_VALUE[p.type], 0);
+  const bMat = captured.byB.reduce((s, p) => s + PIECE_VALUE[p.type], 0);
+  const advantage = wMat - bMat;
 
   return (
     <GameFrame
       title="Chess"
-      subtitle="5단계 난이도의 AI와 대전하는 체스 게임입니다. 기물을 잡으면 전투 이펙트가 터집니다!"
-      badges={DIFFICULTY_LEVELS.map((l) => (difficulty === l.key ? `[${l.label}]` : l.label))}
+      subtitle="AI와 대결하는 풀 룰 체스 게임. 캐슬링·앙파상·프로모션 완전 지원"
+      badges={["전략", "AI", "1vs1"]}
       stats={[
-        {
-          label: "차례",
-          value:
-            turn === "w"
-              ? "당신 (흰)"
-              : isThinking
-                ? "AI 생각중..."
-                : "AI (검)",
-        },
-        { label: "내가 잡은", value: capturedByWhite.length },
-        { label: "AI가 잡은", value: capturedByBlack.length },
+        { label: "난이도", value: diff.label },
+        { label: "차례", value: turn === "w" ? "⬜ 당신" : isThinking ? "🤔 AI..." : "⬛ AI" },
+        { label: "재료 우위", value: advantage > 0 ? `+${advantage}` : advantage < 0 ? `${advantage}` : "=" },
       ]}
-      inModal={inModal}
       controls={
-        <>
-          <div className="flex flex-wrap gap-2">
-            {DIFFICULTY_LEVELS.map(({ key, label }) => (
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1">
+            {DIFFICULTY.map(d => (
               <Button
-                key={key}
-                onClick={() => setDifficulty(key)}
-                variant={difficulty === key ? "default" : "outline"}
-                className="rounded-full text-xs sm:text-sm"
+                key={d.key}
+                size="sm"
+                variant={difficulty === d.key ? "default" : "outline"}
+                className={cn("rounded-full text-xs px-3", difficulty === d.key && "bg-amber-600 hover:bg-amber-700")}
+                onClick={() => setDifficulty(d.key)}
               >
-                {label}
+                {d.label}
               </Button>
             ))}
           </div>
-          <Button
-            onClick={resetGame}
-            variant="outline"
-            className="rounded-full text-sm"
-          >
+          <Button size="sm" variant="outline" className="rounded-full" onClick={resetGame}>
             새 게임
           </Button>
-          <p className="text-sm text-slate-500">
-            {isCheckmate
-              ? "체크메이트! 게임 끝!"
-              : isStalemate
-                ? "스테일메이트! 비김!"
-                : isInCheck && turn === "w"
-                  ? "⚠️ 당신이 체크 상태입니다!"
-                  : status}
-          </p>
-        </>
+          {kingInCheck && !gameOver && (
+            <span className="text-sm font-semibold text-red-600 animate-pulse">⚠️ 체크!</span>
+          )}
+          {gameOver && (
+            <span className="text-sm font-semibold text-violet-700">{gameOver.msg}</span>
+          )}
+        </div>
       }
+      inModal={inModal}
       aside={
-        <Card className="border-white/70 bg-white/95 shadow-[0_16px_40px_rgba(148,163,184,0.12)]">
-          <CardHeader>
-            <CardTitle className="text-lg">이동 기록</CardTitle>
-          </CardHeader>
-          <CardContent className="max-h-64 overflow-y-auto space-y-1 text-xs sm:text-sm font-mono text-slate-600">
-            {moveHistory.length === 0 ? (
-              <p className="text-slate-400">게임을 시작하세요</p>
-            ) : (
-              moveHistory.map((move, i) => (
-                <p key={i}>
-                  {i % 2 === 0 ? `${Math.floor(i / 2) + 1}. ` : "   "}
-                  {move}
-                </p>
-              ))
-            )}
-          </CardContent>
-        </Card>
+        <div className="space-y-3">
+          {/* Move history */}
+          <div className="rounded-2xl border border-slate-200 bg-white/80 p-4">
+            <h3 className="mb-2 text-sm font-semibold text-slate-700">이동 기록</h3>
+            <div className="max-h-48 overflow-y-auto font-mono text-xs text-slate-600 space-y-0.5">
+              {history.length === 0
+                ? <p className="text-slate-400 italic">게임을 시작하세요</p>
+                : history.reduce<React.ReactNode[]>((acc, mv, i) => {
+                    if (i % 2 === 0) acc.push(
+                      <div key={i} className="flex gap-2">
+                        <span className="text-slate-400 w-6">{Math.floor(i / 2) + 1}.</span>
+                        <span className="w-12">{mv}</span>
+                        <span className="w-12">{history[i + 1] ?? ""}</span>
+                      </div>
+                    );
+                    return acc;
+                  }, [])
+              }
+            </div>
+          </div>
+          {/* Captured pieces */}
+          <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 text-xs">
+            <div className="space-y-2">
+              <div>
+                <span className="text-slate-500">당신이 잡음:</span>
+                <div className="mt-1 flex flex-wrap gap-0.5">
+                  {captured.byW.map((p, i) => (
+                    <span key={i} className="inline-block w-5 h-5">
+                      <PieceSVG type={p.type} color="b" />
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <span className="text-slate-500">AI가 잡음:</span>
+                <div className="mt-1 flex flex-wrap gap-0.5">
+                  {captured.byB.map((p, i) => (
+                    <span key={i} className="inline-block w-5 h-5">
+                      <PieceSVG type={p.type} color="w" />
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       }
     >
-      {/* Chess board */}
-      <div className="mx-auto grid w-full max-w-2xl grid-cols-8 rounded-[1.5rem] overflow-hidden shadow-[0_20px_50px_rgba(15,23,42,0.25)]">
-        {board.flatMap((row, rowIndex) =>
-          row.map((square, colIndex) => {
-            const cellKey = `${rowIndex},${colIndex}`;
-            const isLight = isWhiteSquare(rowIndex, colIndex);
-            const isSelected =
-              selected?.[0] === rowIndex && selected?.[1] === colIndex;
-            const isLegalTarget = legalMoves.some(
-              (m) => m.toRow === rowIndex && m.toCol === colIndex
-            );
-            const isFlashing = flashCell === cellKey;
-
-            return (
-              <button
-                key={cellKey}
-                type="button"
-                onClick={() => handleSquareClick(rowIndex, colIndex)}
-                disabled={isThinking || isCheckmate || isStalemate}
-                className={cn(
-                  "aspect-square flex items-center justify-center relative text-3xl select-none",
-                  isLight ? "bg-amber-50" : "bg-amber-700/70",
-                  isSelected ? "bg-violet-200 ring-2 ring-violet-400" : "",
-                  isLegalTarget && !square ? "bg-violet-100" : "",
-                  isFlashing && "animate-battle-flash",
-                  !isThinking &&
-                    !isCheckmate &&
-                    !isStalemate &&
-                    "hover:opacity-80 transition-opacity duration-150 cursor-pointer"
-                )}
-              >
-                {isLegalTarget && !square && (
-                  <span className="absolute inset-0 flex items-center justify-center">
-                    <span className="w-3 h-3 rounded-full bg-violet-400/50" />
-                  </span>
-                )}
-                {square && (
-                  <span
-                    className={cn(
-                      square.color === "w"
-                        ? "text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]"
-                        : "text-slate-900 drop-shadow-[0_1px_2px_rgba(255,255,255,0.6)]",
-                      isSelected && "scale-110"
-                    )}
+      <div className="relative">
+        {/* Promotion dialog */}
+        {promotionPending && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-xl">
+            <div className="bg-white rounded-2xl p-6 shadow-2xl">
+              <p className="text-sm font-semibold text-slate-700 mb-4 text-center">프로모션 기물 선택</p>
+              <div className="flex gap-3">
+                {(["Q", "R", "B", "N"] as PieceType[]).map(pt => (
+                  <button
+                    key={pt}
+                    onClick={() => handlePromotion(pt)}
+                    className="w-14 h-14 rounded-xl bg-slate-50 hover:bg-amber-50 border-2 border-slate-200 hover:border-amber-400 transition-colors p-1"
                   >
-                    {PIECE_SYMBOLS[square.color][square.type]}
-                  </span>
-                )}
-              </button>
-            );
-          })
+                    <PieceSVG type={pt} color="w" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Game over overlay */}
+        {gameOver && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-xl">
+            <div className="bg-white rounded-2xl p-8 shadow-2xl text-center space-y-4">
+              <div className="text-5xl">{gameOver.result === "win" ? "🏆" : gameOver.result === "loss" ? "😞" : "🤝"}</div>
+              <p className="text-lg font-bold text-slate-900">{gameOver.msg}</p>
+              <Button onClick={resetGame} className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white">
+                다시 플레이
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Board */}
+        <div className="mx-auto" style={{ maxWidth: "min(560px, 100%)" }}>
+          {/* Column labels (a-h) top */}
+          <div className="grid grid-cols-[20px_repeat(8,1fr)_20px] mb-0.5 pl-5">
+            {files.map(f => (
+              <div key={f} className="text-center text-[10px] font-semibold text-slate-500">{f}</div>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-[20px_repeat(8,1fr)_20px]">
+            {Array.from({ length: 8 }, (_, rowIndex) => (
+              <>
+                {/* Row label left */}
+                <div key={`l${rowIndex}`} className="flex items-center justify-center text-[10px] font-semibold text-slate-500">
+                  {8 - rowIndex}
+                </div>
+
+                {/* Squares */}
+                {Array.from({ length: 8 }, (_, colIndex) => {
+                  const isLight = (rowIndex + colIndex) % 2 === 0;
+                  const isSelected = selected?.[0] === rowIndex && selected?.[1] === colIndex;
+                  const isLegal = legalMovesForSelected.some(m => m.to[0] === rowIndex && m.to[1] === colIndex);
+                  const isLastFrom = lastMove?.[0][0] === rowIndex && lastMove?.[0][1] === colIndex;
+                  const isLastTo = lastMove?.[1][0] === rowIndex && lastMove?.[1][1] === colIndex;
+                  const isKingCheck = kingInCheck && kingPos?.[0] === rowIndex && kingPos?.[1] === colIndex;
+                  const isFlash = flashCell === `${rowIndex},${colIndex}`;
+                  const cellPiece = board[rowIndex][colIndex];
+                  const isCapturableTarget = isLegal && !!cellPiece;
+
+                  let bg = isLight ? "#F0D9B5" : "#B58863";
+                  if (isSelected) bg = "#7fc97a";
+                  else if (isLastFrom || isLastTo) bg = isLight ? "#cdd16f" : "#aaa23a";
+                  if (isKingCheck) bg = "#e74c3c";
+
+                  return (
+                    <button
+                      key={colIndex}
+                      className={cn(
+                        "aspect-square relative flex items-center justify-center cursor-pointer",
+                        "transition-all duration-100",
+                        isThinking && "cursor-wait",
+                        isFlash && "animate-battle-flash"
+                      )}
+                      style={{ backgroundColor: bg }}
+                      onClick={() => handleSquareClick(rowIndex, colIndex)}
+                    >
+                      {/* Legal move indicator */}
+                      {isLegal && !isCapturableTarget && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-[30%] h-[30%] rounded-full bg-black/20" />
+                        </div>
+                      )}
+                      {/* Capturable piece ring */}
+                      {isCapturableTarget && (
+                        <div className="absolute inset-0 rounded-[2px] ring-[3px] ring-inset ring-black/35 pointer-events-none" />
+                      )}
+                      {/* Piece */}
+                      {cellPiece && (
+                        <div className={cn(
+                          "absolute inset-[8%] pointer-events-none transition-transform duration-100",
+                          isSelected && "scale-110"
+                        )}>
+                          <PieceSVG type={cellPiece.type} color={cellPiece.color} />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* Row label right */}
+                <div key={`r${rowIndex}`} className="flex items-center justify-center text-[10px] font-semibold text-slate-500">
+                  {8 - rowIndex}
+                </div>
+              </>
+            ))}
+          </div>
+
+          {/* Column labels bottom */}
+          <div className="grid grid-cols-[20px_repeat(8,1fr)_20px] mt-0.5 pl-5">
+            {files.map(f => (
+              <div key={f} className="text-center text-[10px] font-semibold text-slate-500">{f}</div>
+            ))}
+          </div>
+        </div>
+
+        {/* AI thinking indicator */}
+        {isThinking && (
+          <div className="mt-3 flex items-center justify-center gap-2 text-sm text-slate-500">
+            <div className="flex gap-1">
+              {[0, 1, 2].map(i => (
+                <div key={i} className="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style={{ animationDelay: `${i * 0.15}s` }} />
+              ))}
+            </div>
+            AI가 생각 중...
+          </div>
         )}
       </div>
-
-      {/* Captured pieces display */}
-      {capturedByWhite.length > 0 && (
-        <div className="mt-4 text-center text-sm">
-          <p className="text-slate-600 font-medium">내가 잡은 기물:</p>
-          <p className="text-xl">
-            {capturedByWhite
-              .map((p) => PIECE_SYMBOLS.b[p.type])
-              .join(" ")}
-          </p>
-        </div>
-      )}
-      {capturedByBlack.length > 0 && (
-        <div className="mt-2 text-center text-sm">
-          <p className="text-slate-600 font-medium">AI가 잡은 기물:</p>
-          <p className="text-xl">
-            {capturedByBlack.map((p) => PIECE_SYMBOLS.w[p.type]).join(" ")}
-          </p>
-        </div>
-      )}
     </GameFrame>
   );
 }

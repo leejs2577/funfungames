@@ -1,11 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 
-import { GameModal } from "@/components/game-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,20 +13,15 @@ import {
 } from "@/components/ui/card";
 import { gameCatalog } from "@/lib/game-data";
 
+function openGame(slug: string) {
+  window.open(
+    `/games/${slug}/play`,
+    `game-${slug}`,
+    "width=1200,height=800,menubar=no,toolbar=no,location=no,status=no"
+  );
+}
+
 export function GamesGrid() {
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
-  const router = useRouter();
-
-  const openGame = (slug: string) => {
-    setActiveSlug(slug);
-    router.replace(`/games/${slug}`, { scroll: false });
-  };
-
-  const closeGame = () => {
-    setActiveSlug(null);
-    router.replace("/games", { scroll: false });
-  };
-
   return (
     <>
       {/* Featured section */}
@@ -138,9 +129,6 @@ export function GamesGrid() {
           </Card>
         ))}
       </section>
-
-      {/* Modal */}
-      <GameModal slug={activeSlug} onClose={closeGame} />
     </>
   );
 }
