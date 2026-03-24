@@ -78,6 +78,22 @@ export const gameCatalog: GameItem[] = [
       "같지 않은 카드도 다음 시도에 중요한 힌트가 됩니다.",
     ],
   },
+  {
+    slug: "chess",
+    title: "Chess",
+    tagline: "전략과 직관으로 AI를 이겨라",
+    description: "5단계 난이도의 AI와 대전하는 체스 게임입니다. 기물을 잡으면 전투 이펙트가 터집니다!",
+    category: "Strategy",
+    difficulty: "Hard",
+    emoji: "♟️",
+    tint: "from-slate-100 via-white to-amber-50",
+    tags: ["strategy", "AI", "turn-based"],
+    instructions: "흰 기물을 클릭해 선택하고, 이동할 칸을 클릭하세요. AI가 자동으로 응수합니다.",
+    hints: [
+      "중앙을 장악하는 기물 배치가 유리합니다.",
+      "킹을 일찍 캐슬링으로 안전한 곳으로 이동시키세요.",
+    ],
+  },
 ];
 
 export function getGameBySlug(slug: string) {

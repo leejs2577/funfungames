@@ -114,7 +114,7 @@ function tileStyle(value: number) {
   return map[value] ?? "bg-slate-900 text-white";
 }
 
-export function Game2048() {
+export function Game2048({ inModal }: { inModal?: boolean } = {}) {
   const [board, setBoard] = useState<Board>(emptyBoard);
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
@@ -181,6 +181,7 @@ export function Game2048() {
         { label: "Best", value: best },
         { label: "State", value: won ? "Won" : gameOver ? "Over" : "Playing" },
       ]}
+      inModal={inModal}
       controls={
         <>
           <Button

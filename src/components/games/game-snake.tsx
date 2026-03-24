@@ -28,7 +28,7 @@ function randomFood(snake: Point[]): Point {
   return point;
 }
 
-export function SnakeGame() {
+export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
   const [snake, setSnake] = useState<Point[]>(INITIAL_SNAKE);
   const [food, setFood] = useState<Point>({ x: 9, y: 6 });
   const [direction, setDirection] = useState<Direction>("RIGHT");
@@ -143,6 +143,7 @@ export function SnakeGame() {
       title="Snake"
       subtitle="네온 컬러의 뱀을 조종해 과일을 먹고 점수를 키우는 빠른 아케이드 게임입니다."
       badges={["Arcade", "Neon", "Fast"]}
+      inModal={inModal}
       stats={[
         { label: "Score", value: score },
         { label: "Best", value: best },

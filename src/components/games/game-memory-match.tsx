@@ -39,7 +39,7 @@ function createStaticDeck(): MemoryCard[] {
   }));
 }
 
-export function MemoryMatchGame() {
+export function MemoryMatchGame({ inModal }: { inModal?: boolean } = {}) {
   const [cards, setCards] = useState<MemoryCard[]>(createStaticDeck);
   const [moves, setMoves] = useState(0);
   const [locked, setLocked] = useState(false);
@@ -104,6 +104,7 @@ export function MemoryMatchGame() {
       title="Memory Match"
       subtitle="귀여운 카드가 들썩이는 캐주얼 메모리 게임입니다."
       badges={["Casual", "Cute", "Flip vibe"]}
+      inModal={inModal}
       stats={[
         { label: "Pairs", value: `${matchedCount}/${EMOJIS.length}` },
         { label: "Moves", value: moves },

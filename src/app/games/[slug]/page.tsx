@@ -5,6 +5,7 @@ import { Game2048 } from "@/components/games/game-2048";
 import { MemoryMatchGame } from "@/components/games/game-memory-match";
 import { SnakeGame } from "@/components/games/game-snake";
 import { TetrisGame } from "@/components/games/game-tetris";
+import { ChessGame } from "@/components/games/game-chess";
 import { SiteHeader } from "@/components/site-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,7 @@ export default async function GameDetailPage({
           {slug === "2048" ? <Game2048 /> : null}
           {slug === "snake" ? <SnakeGame /> : null}
           {slug === "memory-match" ? <MemoryMatchGame /> : null}
+          {slug === "chess" ? <ChessGame /> : null}
         </section>
       </main>
     </div>

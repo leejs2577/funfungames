@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -n \"slug ===\" src/app/games/[slug]/page.tsx)",
+      "Bash(npm run:*)"
+    ]
+  }
+}

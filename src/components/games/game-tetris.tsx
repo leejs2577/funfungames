@@ -83,7 +83,7 @@ function clearLines(board: Board) {
   return { board: [...freshRows, ...kept], lines };
 }
 
-export function TetrisGame() {
+export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
   const [board, setBoard] = useState<Board>(createBoard);
   const [piece, setPiece] = useState(STATIC_PIECE);
   const [score, setScore] = useState(0);
@@ -232,6 +232,7 @@ export function TetrisGame() {
         { label: "Lines", value: lines },
         { label: "Level", value: level },
       ]}
+      inModal={inModal}
       controls={
         <>
           <Button
