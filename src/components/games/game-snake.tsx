@@ -37,6 +37,11 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
   const [status, setStatus] = useState("Press start and use arrow keys.");
   const [best, setBest] = useState(0);
   const directionRef = useRef<Direction>("RIGHT");
+  const foodRef = useRef<Point>(food);
+
+  useEffect(() => {
+    foodRef.current = food;
+  }, [food]);
 
   const score = snake.length - INITIAL_SNAKE.length;
 
@@ -113,7 +118,7 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
         }
 
         const nextSnake = [nextHead, ...currentSnake];
-        if (nextHead.x === food.x && nextHead.y === food.y) {
+        if (nextHead.x === foodRef.current.x && nextHead.y === foodRef.current.y) {
           const nextScore = nextSnake.length - INITIAL_SNAKE.length;
           setBest((currentBest) => Math.max(currentBest, nextScore));
           setFood(randomFood(nextSnake));
@@ -127,7 +132,7 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
     }, 170);
 
     return () => window.clearInterval(interval);
-  }, [food, isRunning]);
+  }, [isRunning]);
 
   const cells = useMemo(
     () =>

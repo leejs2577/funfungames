@@ -113,7 +113,7 @@
   }
   a,
   button {
-    @apply transition-all duration-200;
+    @apply transition-colors duration-200;
   }
 }
 

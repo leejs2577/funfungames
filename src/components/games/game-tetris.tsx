@@ -274,7 +274,7 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
           row.map((cell, columnIndex) => (
             <div
               key={`${rowIndex}-${columnIndex}`}
-              className="aspect-square rounded-md border border-white/5 transition-transform duration-150 hover:scale-[1.04]"
+              className="aspect-square rounded-md border border-white/5"
               style={{
                 backgroundColor: cell || "rgba(255,255,255,0.08)",
                 boxShadow: cell

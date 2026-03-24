@@ -97,7 +97,7 @@ export function GameFrame({
             {stats.map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-xl border border-[var(--neon-cyan)]/15 bg-[var(--arcade-bg)]/60 p-4 transition-transform hover:-translate-y-1"
+                className="rounded-xl border border-[var(--neon-cyan)]/15 bg-[var(--arcade-bg)]/60 p-4"
               >
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500">{stat.label}</p>
                 <p className="mt-2 text-2xl font-bold text-[var(--neon-cyan)]">{stat.value}</p>

@@ -218,7 +218,7 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
           row.map((value, columnIndex) => (
             <div
               key={`${rowIndex}-${columnIndex}`}
-              className={`flex aspect-square items-center justify-center rounded-3xl text-2xl font-black transition-all duration-300 hover:scale-[1.04] ${tileStyle(
+              className={`flex aspect-square items-center justify-center rounded-3xl text-2xl font-black transition-colors duration-300 ${tileStyle(
                 value,
               )}`}
             >
