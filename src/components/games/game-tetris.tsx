@@ -187,6 +187,11 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.key === "Enter" || event.key === " ") && !running) {
+        event.preventDefault();
+        setRunning(true);
+        return;
+      }
       if (!running) return;
       if (event.key.startsWith("Arrow") || event.key === " ") event.preventDefault();
 
@@ -269,21 +274,23 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="mx-auto grid w-full max-w-md grid-cols-10 gap-1 rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-violet-950 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.45)]">
-        {renderedBoard.flatMap((row, rowIndex) =>
-          row.map((cell, columnIndex) => (
-            <div
-              key={`${rowIndex}-${columnIndex}`}
-              className="aspect-square rounded-md border border-white/5"
-              style={{
-                backgroundColor: cell || "rgba(255,255,255,0.08)",
-                boxShadow: cell
-                  ? "inset 0 1px 0 rgba(255,255,255,0.45), 0 0 14px rgba(255,255,255,0.12)"
-                  : "none",
-              }}
-            />
-          )),
-        )}
+      <div className="mx-auto aspect-[1/2] max-h-[70vh] w-auto rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-violet-950 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.45)]">
+        <div className="grid h-full w-full grid-cols-10 gap-1">
+          {renderedBoard.flatMap((row, rowIndex) =>
+            row.map((cell, columnIndex) => (
+              <div
+                key={`${rowIndex}-${columnIndex}`}
+                className="rounded-md border border-white/5"
+                style={{
+                  backgroundColor: cell || "rgba(255,255,255,0.08)",
+                  boxShadow: cell
+                    ? "inset 0 1px 0 rgba(255,255,255,0.45), 0 0 14px rgba(255,255,255,0.12)"
+                    : "none",
+                }}
+              />
+            )),
+          )}
+        </div>
       </div>
       <MobileControls
         onDirection={(dir) => {
@@ -295,6 +302,8 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
         }}
         onAction={hardDrop}
         actionLabel="DROP"
+        onStart={() => setRunning(true)}
+        startLabel="START"
         disabled={!running}
       />
     </GameFrame>

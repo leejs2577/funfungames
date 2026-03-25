@@ -63,7 +63,7 @@ export default function PlayPage() {
       </header>
 
       {/* Game area fills remaining viewport height, no window-level scroll */}
-      <main className="min-h-0 flex-1 overflow-auto px-4 py-3 sm:px-6">
+      <main className="min-h-0 flex-1 overflow-hidden px-4 py-2 sm:px-6">
         <GameComponent inModal />
       </main>
     </div>

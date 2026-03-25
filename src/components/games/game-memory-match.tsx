@@ -133,22 +133,24 @@ export function MemoryMatchGame({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="mx-auto grid w-full max-w-3xl grid-cols-4 gap-3">
-        {cards.map((card) => (
-          <button
-            key={card.id}
-            type="button"
-            onClick={() => onCardClick(card.id)}
-            className={[
-              "aspect-[4/5] rounded-[1.5rem] border text-4xl shadow-sm transition-colors duration-300",
-              card.open || card.matched
-                ? "border-white bg-gradient-to-br from-white to-yellow-50 shadow-[0_14px_28px_rgba(251,191,36,0.12)]"
-                : "border-transparent bg-gradient-to-br from-rose-100 via-white to-sky-100 hover:shadow-[0_14px_28px_rgba(59,130,246,0.12)]",
-            ].join(" ")}
-          >
-            {card.open || card.matched ? card.value : "?"}
-          </button>
-        ))}
+      <div className="mx-auto aspect-[4/5] max-h-[70vh] w-auto">
+        <div className="grid h-full w-full grid-cols-4 gap-3">
+          {cards.map((card) => (
+            <button
+              key={card.id}
+              type="button"
+              onClick={() => onCardClick(card.id)}
+              className={[
+                "rounded-[1.5rem] border text-4xl shadow-sm transition-colors duration-300",
+                card.open || card.matched
+                  ? "border-white bg-gradient-to-br from-white to-yellow-50 shadow-[0_14px_28px_rgba(251,191,36,0.12)]"
+                  : "border-transparent bg-gradient-to-br from-rose-100 via-white to-sky-100 hover:shadow-[0_14px_28px_rgba(59,130,246,0.12)]",
+              ].join(" ")}
+            >
+              {card.open || card.matched ? card.value : "?"}
+            </button>
+          ))}
+        </div>
       </div>
     </GameFrame>
   );

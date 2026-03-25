@@ -743,7 +743,7 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
         </div>
       }
     >
-      <div className="relative">
+      <div className="relative mx-auto aspect-square max-h-[70vh] w-auto">
         {/* Promotion dialog */}
         {promotionPending && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-xl">
@@ -778,7 +778,7 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
         )}
 
         {/* Board */}
-        <div className="mx-auto" style={{ maxWidth: "min(560px, 100%)" }}>
+        <div className="mx-auto w-full">
           {/* Column labels (a-h) top */}
           <div className="grid grid-cols-[20px_repeat(8,1fr)_20px] mb-0.5 pl-5">
             {files.map(f => (

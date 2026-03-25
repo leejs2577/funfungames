@@ -74,6 +74,11 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.key === "Enter" || event.key === " ") && !isRunning) {
+        event.preventDefault();
+        setIsRunning(true);
+        return;
+      }
       const directionMap: Record<string, Direction> = {
         ArrowUp: "UP",
         ArrowDown: "DOWN",
@@ -88,7 +93,7 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleDirection]);
+  }, [handleDirection, isRunning]);
 
   useEffect(() => {
     if (!isRunning) return;
@@ -193,31 +198,35 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="mx-auto grid w-full max-w-xl grid-cols-12 gap-1 rounded-[2rem] bg-gradient-to-br from-emerald-100 via-white to-sky-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-        {cells.map((cell) => (
-          <div
-            key={`${cell.x}-${cell.y}`}
-            className={[
-              "aspect-square rounded-xl transition-all duration-150",
-              cell.isHead
-                ? "scale-105 bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-[0_0_16px_rgba(168,85,247,0.4)]"
-                : "",
-              cell.isBody
-                ? "bg-gradient-to-br from-emerald-400 to-teal-500 shadow-[0_6px_14px_rgba(16,185,129,0.22)]"
-                : "",
-              cell.isFood
-                ? "animate-pulse-glow bg-gradient-to-br from-rose-400 to-orange-400 shadow-[0_0_18px_rgba(251,113,133,0.4)]"
-                : "",
-              !cell.isHead && !cell.isBody && !cell.isFood ? "bg-white/85" : "",
-            ].join(" ")}
-          />
-        ))}
+      <div className="mx-auto aspect-square max-h-[70vh] w-auto rounded-[2rem] bg-gradient-to-br from-emerald-100 via-white to-sky-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+        <div className="grid h-full w-full grid-cols-12 gap-1">
+          {cells.map((cell) => (
+            <div
+              key={`${cell.x}-${cell.y}`}
+              className={[
+                "rounded-xl transition-all duration-150",
+                cell.isHead
+                  ? "scale-105 bg-gradient-to-br from-violet-600 to-fuchsia-500 shadow-[0_0_16px_rgba(168,85,247,0.4)]"
+                  : "",
+                cell.isBody
+                  ? "bg-gradient-to-br from-emerald-400 to-teal-500 shadow-[0_6px_14px_rgba(16,185,129,0.22)]"
+                  : "",
+                cell.isFood
+                  ? "animate-pulse-glow bg-gradient-to-br from-rose-400 to-orange-400 shadow-[0_0_18px_rgba(251,113,133,0.4)]"
+                  : "",
+                !cell.isHead && !cell.isBody && !cell.isFood ? "bg-white/85" : "",
+              ].join(" ")}
+            />
+          ))}
+        </div>
       </div>
       <MobileControls
         onDirection={(dir) => {
           const dirMap = { up: "UP", down: "DOWN", left: "LEFT", right: "RIGHT" } as const;
           handleDirection(dirMap[dir]);
         }}
+        onStart={() => setIsRunning(true)}
+        startLabel="START"
         disabled={!isRunning}
       />
     </GameFrame>

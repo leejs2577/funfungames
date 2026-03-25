@@ -213,22 +213,26 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="mx-auto grid w-full max-w-md grid-cols-4 gap-3 rounded-[2rem] bg-gradient-to-br from-rose-100 via-white to-sky-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-        {board.flatMap((row, rowIndex) =>
-          row.map((value, columnIndex) => (
-            <div
-              key={`${rowIndex}-${columnIndex}`}
-              className={`flex aspect-square items-center justify-center rounded-3xl text-2xl font-black transition-colors duration-300 ${tileStyle(
-                value,
-              )}`}
-            >
-              {value !== 0 ? value : ""}
-            </div>
-          )),
-        )}
+      <div className="mx-auto aspect-square max-h-[70vh] w-auto rounded-[2rem] bg-gradient-to-br from-rose-100 via-white to-sky-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+        <div className="grid h-full w-full grid-cols-4 gap-3">
+          {board.flatMap((row, rowIndex) =>
+            row.map((value, columnIndex) => (
+              <div
+                key={`${rowIndex}-${columnIndex}`}
+                className={`flex items-center justify-center rounded-3xl text-2xl font-black transition-colors duration-300 ${tileStyle(
+                  value,
+                )}`}
+              >
+                {value !== 0 ? value : ""}
+              </div>
+            )),
+          )}
+        </div>
       </div>
       <MobileControls
         onDirection={handleDirection}
+        onStart={resetGame}
+        startLabel="RESTART"
         disabled={won || gameOver}
       />
     </GameFrame>

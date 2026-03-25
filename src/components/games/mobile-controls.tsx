@@ -9,6 +9,8 @@ interface MobileControlsProps {
   onDirection: (dir: Direction) => void;
   onAction?: () => void;
   actionLabel?: string;
+  onStart?: () => void;
+  startLabel?: string;
   disabled?: boolean;
 }
 
@@ -29,7 +31,7 @@ function DPadButton({ dir, onDirection, disabled }: DPadButtonProps) {
 
   return (
     <button
-      className="flex size-14 items-center justify-center rounded-lg text-[var(--neon-cyan)] transition-transform active:scale-90 active:bg-[var(--neon-cyan)]/20 disabled:opacity-30"
+      className="flex size-12 items-center justify-center rounded-lg text-[var(--neon-cyan)] active:scale-90 active:bg-[var(--neon-cyan)]/20 disabled:opacity-30"
       style={{
         border: "1px solid rgba(0, 229, 255, 0.35)",
         backgroundColor: "rgba(13, 13, 38, 0.9)",
@@ -43,7 +45,7 @@ function DPadButton({ dir, onDirection, disabled }: DPadButtonProps) {
       disabled={disabled}
       aria-label={dir}
     >
-      <Icon className="size-6" />
+      <Icon className="size-5" />
     </button>
   );
 }
@@ -52,6 +54,8 @@ export function MobileControls({
   onDirection,
   onAction,
   actionLabel = "ACT",
+  onStart,
+  startLabel = "START",
   disabled,
 }: MobileControlsProps) {
   const [isMobile, setIsMobile] = useState(false);
@@ -104,19 +108,21 @@ export function MobileControls({
 
   if (!isMobile) return null;
 
+  const hasRightButtons = onStart || onAction;
+
   return (
     <div
-      className="mt-4 flex flex-col items-center gap-3 select-none"
+      className="shrink-0 flex items-center justify-between px-4 py-2 select-none"
       style={{ touchAction: "none" }}
     >
-      {/* D-pad */}
-      <div className="grid grid-cols-3 gap-1.5">
+      {/* D-pad on left */}
+      <div className="grid grid-cols-3 gap-1">
         <div />
         <DPadButton dir="up" onDirection={onDirection} disabled={disabled} />
         <div />
         <DPadButton dir="left" onDirection={onDirection} disabled={disabled} />
         <div
-          className="size-14 rounded-lg"
+          className="size-12 rounded-lg"
           style={{
             border: "1px solid rgba(0, 229, 255, 0.1)",
             backgroundColor: "rgba(13, 13, 38, 0.5)",
@@ -128,26 +134,49 @@ export function MobileControls({
         <div />
       </div>
 
-      {/* Optional action button */}
-      {onAction && (
-        <button
-          className="mt-1 rounded-lg px-8 py-3 text-xs font-bold uppercase tracking-widest text-[var(--neon-yellow)] transition-all active:scale-95 active:bg-[var(--neon-yellow)]/20 disabled:opacity-30"
-          style={{
-            border: "1px solid rgba(255, 230, 0, 0.5)",
-            backgroundColor: "rgba(255, 230, 0, 0.05)",
-            boxShadow: "0 0 10px rgba(255,230,0,0.15)",
-            touchAction: "manipulation",
-            fontFamily: "var(--font-arcade)",
-            fontSize: "10px",
-          }}
-          onPointerDown={(e) => {
-            e.preventDefault();
-            if (!disabled) onAction();
-          }}
-          disabled={disabled}
-        >
-          {actionLabel}
-        </button>
+      {/* Action buttons on right */}
+      {hasRightButtons && (
+        <div className="flex flex-col items-center gap-2">
+          {onStart && (
+            <button
+              className="rounded-lg px-6 py-3 text-xs font-bold uppercase tracking-widest text-[var(--neon-cyan)] active:scale-95 active:bg-[var(--neon-cyan)]/20 disabled:opacity-30"
+              style={{
+                border: "1px solid rgba(0, 229, 255, 0.5)",
+                backgroundColor: "rgba(0, 229, 255, 0.05)",
+                boxShadow: "0 0 10px rgba(0,229,255,0.15)",
+                touchAction: "manipulation",
+                fontFamily: "var(--font-arcade)",
+                fontSize: "10px",
+              }}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                onStart();
+              }}
+            >
+              {startLabel}
+            </button>
+          )}
+          {onAction && (
+            <button
+              className="rounded-lg px-6 py-3 text-xs font-bold uppercase tracking-widest text-[var(--neon-yellow)] active:scale-95 active:bg-[var(--neon-yellow)]/20 disabled:opacity-30"
+              style={{
+                border: "1px solid rgba(255, 230, 0, 0.5)",
+                backgroundColor: "rgba(255, 230, 0, 0.05)",
+                boxShadow: "0 0 10px rgba(255,230,0,0.15)",
+                touchAction: "manipulation",
+                fontFamily: "var(--font-arcade)",
+                fontSize: "10px",
+              }}
+              onPointerDown={(e) => {
+                e.preventDefault();
+                if (!disabled) onAction();
+              }}
+              disabled={disabled}
+            >
+              {actionLabel}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
