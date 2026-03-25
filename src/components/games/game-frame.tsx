@@ -52,7 +52,7 @@ export function GameFrame({
           <div className="ml-auto flex flex-wrap gap-2">{controls}</div>
         </div>
         {/* Game content - fits remaining space */}
-        <div className="flex-1 min-h-0 flex flex-col items-center justify-center">
+        <div className="flex-1 min-h-0 flex flex-col">
           {children}
         </div>
       </div>

@@ -124,11 +124,11 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
   const won = useMemo(() => board.some((row) => row.includes(2048)), [board]);
   const gameOver = useMemo(() => !hasMoves(board), [board]);
 
-  const resetGame = () => {
+  const resetGame = useCallback(() => {
     setBoard(createStartBoard());
     setScore(0);
     setStatus("Fresh sparkling board ready.");
-  };
+  }, []);
 
   const handleDirection = useCallback(
     (direction: "left" | "right" | "up" | "down") => {
@@ -156,6 +156,12 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.key === "Enter" || event.key === " ") && (won || gameOver)) {
+        event.preventDefault();
+        resetGame();
+        return;
+      }
+
       const directionMap: Record<string, "left" | "right" | "up" | "down"> = {
         ArrowLeft: "left",
         ArrowRight: "right",
@@ -171,12 +177,12 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleDirection]);
+  }, [handleDirection, won, gameOver, resetGame]);
 
   const displayStatus = won
     ? "2048 achieved! Glitter victory!"
     : gameOver
-      ? "No moves left. Try a new run!"
+      ? "No moves left. Press Restart!"
       : status;
 
   return (
@@ -213,20 +219,22 @@ export function Game2048({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="mx-auto aspect-square max-h-[70vh] w-auto rounded-[2rem] bg-gradient-to-br from-rose-100 via-white to-sky-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
-        <div className="grid h-full w-full grid-cols-4 gap-3">
-          {board.flatMap((row, rowIndex) =>
-            row.map((value, columnIndex) => (
-              <div
-                key={`${rowIndex}-${columnIndex}`}
-                className={`flex items-center justify-center rounded-3xl text-2xl font-black transition-colors duration-300 ${tileStyle(
-                  value,
-                )}`}
-              >
-                {value !== 0 ? value : ""}
-              </div>
-            )),
-          )}
+      <div className="flex-1 min-h-0 flex items-center justify-center">
+        <div className="aspect-square max-h-full w-auto rounded-[2rem] bg-gradient-to-br from-rose-100 via-white to-sky-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+          <div className="grid h-full w-full grid-cols-4 gap-3">
+            {board.flatMap((row, rowIndex) =>
+              row.map((value, columnIndex) => (
+                <div
+                  key={`${rowIndex}-${columnIndex}`}
+                  className={`flex items-center justify-center rounded-3xl text-2xl font-black transition-colors duration-300 ${tileStyle(
+                    value,
+                  )}`}
+                >
+                  {value !== 0 ? value : ""}
+                </div>
+              )),
+            )}
+          </div>
         </div>
       </div>
       <MobileControls

@@ -743,7 +743,8 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
         </div>
       }
     >
-      <div className="relative mx-auto aspect-square max-h-[70vh] w-auto">
+      <div className="flex-1 min-h-0 flex items-center justify-center">
+      <div className="relative aspect-square max-h-full w-auto">
         {/* Promotion dialog */}
         {promotionPending && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-xl">
@@ -873,6 +874,7 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
             AI가 생각 중...
           </div>
         )}
+      </div>
       </div>
     </GameFrame>
   );

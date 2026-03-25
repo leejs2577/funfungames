@@ -91,6 +91,7 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
   const [lines, setLines] = useState(0);
   const [level, setLevel] = useState(1);
   const [running, setRunning] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
   const [status, setStatus] = useState("Press start to play Tetris.");
   const framePiece = useRef(piece);
   const boardRef = useRef(board);
@@ -108,15 +109,16 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
     return () => window.clearTimeout(id);
   }, []);
 
-  const resetGame = () => {
+  const resetGame = useCallback(() => {
     setBoard(createBoard());
     setPiece(randomPiece());
     setScore(0);
     setLines(0);
     setLevel(1);
     setRunning(false);
+    setGameOver(false);
     setStatus("Fresh neon board ready.");
-  };
+  }, []);
 
   const settlePiece = useCallback(() => {
     setBoard((currentBoard) => {
@@ -136,7 +138,8 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
       const nextPiece = randomPiece();
       if (collides(cleared.board, nextPiece)) {
         setRunning(false);
-        setStatus("Game over. Reset to try again.");
+        setGameOver(true);
+        setStatus("Game over! Press Start to play again.");
       } else {
         setPiece(nextPiece);
       }
@@ -189,6 +192,7 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.key === "Enter" || event.key === " ") && !running) {
         event.preventDefault();
+        if (gameOver) resetGame();
         setRunning(true);
         return;
       }
@@ -204,7 +208,7 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [hardDrop, movePiece, running]);
+  }, [gameOver, hardDrop, movePiece, resetGame, running]);
 
   useEffect(() => {
     if (!running) return;
@@ -242,7 +246,7 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
       controls={
         <>
           <Button
-            onClick={() => setRunning(true)}
+            onClick={() => { if (gameOver) resetGame(); setRunning(true); }}
             className="rounded-full bg-gradient-to-r from-[#00e5ff] to-[#6366f1] text-black font-bold shadow-[0_0_20px_rgba(0,229,255,0.3)]"
           >
             Start
@@ -274,22 +278,24 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="mx-auto aspect-[1/2] max-h-[70vh] w-auto rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-violet-950 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.45)]">
-        <div className="grid h-full w-full grid-cols-10 gap-1">
-          {renderedBoard.flatMap((row, rowIndex) =>
-            row.map((cell, columnIndex) => (
-              <div
-                key={`${rowIndex}-${columnIndex}`}
-                className="rounded-md border border-white/5"
-                style={{
-                  backgroundColor: cell || "rgba(255,255,255,0.08)",
-                  boxShadow: cell
-                    ? "inset 0 1px 0 rgba(255,255,255,0.45), 0 0 14px rgba(255,255,255,0.12)"
-                    : "none",
-                }}
-              />
-            )),
-          )}
+      <div className="flex-1 min-h-0 flex items-center justify-center">
+        <div className="aspect-[1/2] max-h-full w-auto rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-violet-950 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.45)]">
+          <div className="grid h-full w-full grid-cols-10 gap-1">
+            {renderedBoard.flatMap((row, rowIndex) =>
+              row.map((cell, columnIndex) => (
+                <div
+                  key={`${rowIndex}-${columnIndex}`}
+                  className="rounded-md border border-white/5"
+                  style={{
+                    backgroundColor: cell || "rgba(255,255,255,0.08)",
+                    boxShadow: cell
+                      ? "inset 0 1px 0 rgba(255,255,255,0.45), 0 0 14px rgba(255,255,255,0.12)"
+                      : "none",
+                  }}
+                />
+              )),
+            )}
+          </div>
         </div>
       </div>
       <MobileControls
@@ -302,7 +308,7 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
         }}
         onAction={hardDrop}
         actionLabel="DROP"
-        onStart={() => setRunning(true)}
+        onStart={() => { if (gameOver) resetGame(); setRunning(true); }}
         startLabel="START"
         disabled={!running}
       />
