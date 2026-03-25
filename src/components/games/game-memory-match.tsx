@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { GameFrame } from "@/components/games/game-frame";
+import { GameFrame, GameViewport } from "@/components/games/game-frame";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -133,8 +133,8 @@ export function MemoryMatchGame({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="flex-1 min-h-0 flex items-center justify-center">
-        <div className="aspect-[4/5] max-h-full w-auto">
+      <GameViewport aspectRatio={4 / 5}>
+        <div className="h-full w-full">
           <div className="grid h-full w-full grid-cols-4 gap-3">
             {cards.map((card) => (
               <button
@@ -153,7 +153,7 @@ export function MemoryMatchGame({ inModal }: { inModal?: boolean } = {}) {
             ))}
           </div>
         </div>
-      </div>
+      </GameViewport>
     </GameFrame>
   );
 }

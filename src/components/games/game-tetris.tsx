@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { GameFrame } from "@/components/games/game-frame";
+import { GameFrame, GameViewport } from "@/components/games/game-frame";
 import { MobileControls } from "@/components/games/mobile-controls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -278,8 +278,8 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="flex-1 min-h-0 flex items-center justify-center">
-        <div className="aspect-[1/2] max-h-full w-auto rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-violet-950 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.45)]">
+      <GameViewport aspectRatio={1 / 2}>
+        <div className="h-full w-full rounded-[2rem] bg-gradient-to-br from-slate-900 via-slate-800 to-violet-950 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.45)]">
           <div className="grid h-full w-full grid-cols-10 gap-1">
             {renderedBoard.flatMap((row, rowIndex) =>
               row.map((cell, columnIndex) => (
@@ -297,7 +297,7 @@ export function TetrisGame({ inModal }: { inModal?: boolean } = {}) {
             )}
           </div>
         </div>
-      </div>
+      </GameViewport>
       <MobileControls
         onDirection={(dir) => {
           if (!running) return;

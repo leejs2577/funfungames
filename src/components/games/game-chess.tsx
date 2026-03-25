@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { GameFrame } from "@/components/games/game-frame";
+import { GameFrame, GameViewport } from "@/components/games/game-frame";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -743,8 +743,8 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
         </div>
       }
     >
-      <div className="flex-1 min-h-0 flex items-center justify-center">
-      <div className="relative aspect-square max-h-full w-auto">
+      <GameViewport aspectRatio={1}>
+      <div className="relative h-full w-full">
         {/* Promotion dialog */}
         {promotionPending && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 rounded-xl">
@@ -875,7 +875,7 @@ export function ChessGame({ inModal }: { inModal?: boolean } = {}) {
           </div>
         )}
       </div>
-      </div>
+      </GameViewport>
     </GameFrame>
   );
 }

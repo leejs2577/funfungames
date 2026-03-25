@@ -34,12 +34,12 @@ export default function PlayPage() {
 
   return (
     <div
-      className="flex h-screen flex-col overflow-hidden"
+      className="flex h-[100dvh] flex-col overflow-hidden"
       style={{ backgroundColor: "var(--arcade-bg)" }}
     >
       {/* Sticky slim header */}
       <header
-        className="shrink-0 flex items-center justify-between border-b px-4 py-2.5 backdrop-blur-md sm:px-6"
+        className="shrink-0 flex items-center justify-between border-b px-2.5 py-1.5 backdrop-blur-md sm:px-4 sm:py-2 max-[720px]:px-2 max-[720px]:py-1"
         style={{
           borderColor: "rgba(0, 229, 255, 0.2)",
           backgroundColor: "rgba(10, 10, 26, 0.9)",
@@ -48,8 +48,8 @@ export default function PlayPage() {
         <div className="flex items-center gap-3">
           <span className="text-xl">{game.emoji}</span>
           <div>
-            <h1 className="text-sm font-bold text-slate-100">{game.title}</h1>
-            <p className="text-xs text-slate-500">{game.tagline}</p>
+            <h1 className="text-xs font-bold text-slate-100 sm:text-sm">{game.title}</h1>
+            <p className="text-[11px] text-slate-500 max-[720px]:hidden">{game.tagline}</p>
           </div>
         </div>
         <button
@@ -63,7 +63,7 @@ export default function PlayPage() {
       </header>
 
       {/* Game area fills remaining viewport height, no window-level scroll */}
-      <main className="min-h-0 flex-1 overflow-hidden px-4 py-2 sm:px-6">
+      <main className="min-h-0 flex-1 overflow-hidden px-1.5 py-1 sm:px-3 sm:py-1.5">
         <GameComponent inModal />
       </main>
     </div>

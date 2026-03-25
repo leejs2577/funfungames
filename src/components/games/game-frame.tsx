@@ -1,8 +1,9 @@
 "use client";
 
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import {
   Card,
   CardContent,
@@ -15,6 +16,72 @@ type Stat = {
   label: string;
   value: string | number;
 };
+
+export function GameViewport({
+  aspectRatio,
+  className,
+  children,
+}: {
+  aspectRatio: number;
+  className?: string;
+  children: ReactNode;
+}) {
+  const hostRef = useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
+
+  useEffect(() => {
+    const host = hostRef.current;
+    if (!host) return;
+
+    const updateSize = () => {
+      const width = host.clientWidth;
+      const height = host.clientHeight;
+      if (width <= 0 || height <= 0) return;
+
+      let fittedWidth = width;
+      let fittedHeight = width / aspectRatio;
+
+      if (fittedHeight > height) {
+        fittedHeight = height;
+        fittedWidth = height * aspectRatio;
+      }
+
+      const next = {
+        width: Math.max(1, Math.floor(fittedWidth)),
+        height: Math.max(1, Math.floor(fittedHeight)),
+      };
+
+      setSize((previous) =>
+        previous?.width === next.width && previous?.height === next.height ? previous : next,
+      );
+    };
+
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(host);
+
+    window.addEventListener("orientationchange", updateSize);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("orientationchange", updateSize);
+    };
+  }, [aspectRatio]);
+
+  return (
+    <div ref={hostRef} className={cn("relative flex-1 min-h-0", className)}>
+      <div
+        className="absolute left-1/2 top-1/2"
+        style={{
+          width: size?.width ?? "100%",
+          height: size?.height ?? "100%",
+          transform: "translate(-50%, -50%)",
+        }}
+      >
+        <div className="h-full w-full">{children}</div>
+      </div>
+    </div>
+  );
+}
 
 export function GameFrame({
   title,
@@ -37,9 +104,9 @@ export function GameFrame({
 }) {
   if (inModal) {
     return (
-      <div className="flex h-full flex-col gap-2">
+      <div className="flex h-full flex-col gap-1.5 sm:gap-2">
         {/* Slim control bar: badges + controls */}
-        <div className="shrink-0 flex flex-wrap items-center gap-2">
+        <div className="shrink-0 flex flex-wrap items-center gap-1 sm:gap-2">
           {badges.slice(0, 3).map((badge) => (
             <Badge
               key={badge}
@@ -49,7 +116,7 @@ export function GameFrame({
               {badge}
             </Badge>
           ))}
-          <div className="ml-auto flex flex-wrap gap-2">{controls}</div>
+          <div className="ml-auto flex flex-wrap items-center gap-1 sm:gap-2">{controls}</div>
         </div>
         {/* Game content - fits remaining space */}
         <div className="flex-1 min-h-0 flex flex-col">

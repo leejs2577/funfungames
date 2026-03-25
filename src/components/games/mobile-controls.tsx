@@ -31,7 +31,7 @@ function DPadButton({ dir, onDirection, disabled }: DPadButtonProps) {
 
   return (
     <button
-      className="flex size-12 items-center justify-center rounded-lg text-[var(--neon-cyan)] active:scale-90 active:bg-[var(--neon-cyan)]/20 disabled:opacity-30"
+      className="flex size-10 items-center justify-center rounded-lg text-[var(--neon-cyan)] active:scale-90 active:bg-[var(--neon-cyan)]/20 disabled:opacity-30 sm:size-12"
       style={{
         border: "1px solid rgba(0, 229, 255, 0.35)",
         backgroundColor: "rgba(13, 13, 38, 0.9)",
@@ -112,7 +112,7 @@ export function MobileControls({
 
   return (
     <div
-      className="shrink-0 flex items-center justify-between px-4 py-2 select-none"
+      className="shrink-0 flex items-center justify-between px-3 py-1.5 select-none sm:px-4 sm:py-2"
       style={{ touchAction: "none" }}
     >
       {/* D-pad on left */}
@@ -122,7 +122,7 @@ export function MobileControls({
         <div />
         <DPadButton dir="left" onDirection={onDirection} disabled={disabled} />
         <div
-          className="size-12 rounded-lg"
+          className="size-10 rounded-lg sm:size-12"
           style={{
             border: "1px solid rgba(0, 229, 255, 0.1)",
             backgroundColor: "rgba(13, 13, 38, 0.5)",
@@ -139,7 +139,7 @@ export function MobileControls({
         <div className="flex flex-col items-center gap-2">
           {onStart && (
             <button
-              className="rounded-lg px-6 py-3 text-xs font-bold uppercase tracking-widest text-[var(--neon-cyan)] active:scale-95 active:bg-[var(--neon-cyan)]/20 disabled:opacity-30"
+              className="rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-[var(--neon-cyan)] active:scale-95 active:bg-[var(--neon-cyan)]/20 disabled:opacity-30 sm:px-6 sm:py-3"
               style={{
                 border: "1px solid rgba(0, 229, 255, 0.5)",
                 backgroundColor: "rgba(0, 229, 255, 0.05)",
@@ -158,7 +158,7 @@ export function MobileControls({
           )}
           {onAction && (
             <button
-              className="rounded-lg px-6 py-3 text-xs font-bold uppercase tracking-widest text-[var(--neon-yellow)] active:scale-95 active:bg-[var(--neon-yellow)]/20 disabled:opacity-30"
+              className="rounded-lg px-4 py-2.5 text-xs font-bold uppercase tracking-widest text-[var(--neon-yellow)] active:scale-95 active:bg-[var(--neon-yellow)]/20 disabled:opacity-30 sm:px-6 sm:py-3"
               style={{
                 border: "1px solid rgba(255, 230, 0, 0.5)",
                 backgroundColor: "rgba(255, 230, 0, 0.05)",

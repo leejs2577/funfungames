@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { GameFrame } from "@/components/games/game-frame";
+import { GameFrame, GameViewport } from "@/components/games/game-frame";
 import { MobileControls } from "@/components/games/mobile-controls";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -202,8 +202,8 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
         </Card>
       }
     >
-      <div className="flex-1 min-h-0 flex items-center justify-center">
-        <div className="aspect-square max-h-full w-auto rounded-[2rem] bg-gradient-to-br from-emerald-100 via-white to-sky-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
+      <GameViewport aspectRatio={1}>
+        <div className="h-full w-full rounded-[2rem] bg-gradient-to-br from-emerald-100 via-white to-sky-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
           <div className="grid h-full w-full grid-cols-12 gap-1">
             {cells.map((cell) => (
               <div
@@ -225,7 +225,7 @@ export function SnakeGame({ inModal }: { inModal?: boolean } = {}) {
             ))}
           </div>
         </div>
-      </div>
+      </GameViewport>
       <MobileControls
         onDirection={(dir) => {
           const dirMap = { up: "UP", down: "DOWN", left: "LEFT", right: "RIGHT" } as const;
